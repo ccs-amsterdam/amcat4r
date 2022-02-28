@@ -9,7 +9,7 @@ pkg.env <- new.env()
 #' @export
 login <- function(host, username, password=NULL) {
   if (is.null(password)) password = rstudioapi::askForPassword(paste("Password for", host))
-  r = httr::GET(paste0(host, "/auth/token/"),
+  r = httr::GET(paste0(host, "/auth/token"),
                 httr::authenticate(username, password))
 
   httr::stop_for_status(r)
@@ -29,14 +29,51 @@ get_credentials = function(credentials=NULL) {
   credentials
 }
 
+request <- function(url, request_function=httr::GET, credentials=NULL, ...) {
+  credentials = get_credentials(credentials)
+  r = request_function(paste0(credentials$host, url),
+                httr::add_headers(Authorization = paste("Bearer", credentials$token)), ...)
+  httr::stop_for_status(r)
+  invisible(httr::content(r, as="parsed"))
+}
+
 #' List the indexes on this server
 #'
 #' @param credentials The credentials to use. If not given, use last login information
+#' @return a tibble with index names and role
 #' @export
 list_indexes <- function(credentials=NULL) {
- credentials = get_credentials(credentials)
-  httr::GET(paste0(credentials$host, "/index"),
-            httr::add_headers(Authorization = paste("Bearer", credentials$token)))
+  request("/index", credentials=credentials) |> dplyr::bind_rows()
+}
+
+#' Delete an index
+#'
+#' @param credentials The credentials to use. If not given, use last login information
+#' @export
+delete_index <- function(index, credentials=NULL) {
+  request(paste0("/index/", index), request_function = httr::DELETE, credentials = credentials)
+}
+
+#' Create an index
+#'
+#' @param index Name of the index to create
+#' @param credentials The credentials to use. If not given, use last login information
+#' @export
+create_index <- function(index, credentials=NULL) {
+  body = list(name=index)
+  request("/index/", request_function = httr::POST, body=body, encode="json", credentials = credentials)
+}
+
+#' Upload documents
+#'
+#' @param index The index name to create
+#' @param documents A data frame with columns title, text, date, and optional other columns
+#' @param columns An optional list with data types, e.g. list(author="keyword")
+#' @export
+upload_documents <- function(index, documents, columns=NULL, credentials=NULL) {
+  body = list(documents=documents)
+  if (!is.null(columns)) body$columns = columns
+  request(paste0("/index/", index, "/documents"), request_function=httr::POST, body=body, encode="json", credentials=credentials)
 }
 
 #' Post a codingjob to the annotation backend
