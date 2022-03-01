@@ -73,7 +73,8 @@ create_index <- function(index, credentials=NULL) {
 upload_documents <- function(index, documents, columns=NULL, credentials=NULL) {
   body = list(documents=documents)
   if (!is.null(columns)) body$columns = columns
-  request(paste0("/index/", index, "/documents"), request_function=httr::POST, body=body, encode="json", credentials=credentials)
+  body = jsonlite::toJSON(body, null='null')
+  request(paste0("/index/", index, "/documents"), request_function=httr::POST, body=body, encode="raw", credentials=credentials)
 }
 
 #' Post a codingjob to the annotation backend
