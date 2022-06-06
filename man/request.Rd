@@ -4,7 +4,13 @@
 \alias{request}
 \title{Helper function to execute a request to this API}
 \usage{
-request(credentials, url, request_function = httr::GET, ...)
+request(
+  credentials,
+  url,
+  request_function = httr::GET,
+  error_on_404 = TRUE,
+  ...
+)
 }
 \description{
 Helper function to execute a request to this API

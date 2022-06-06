@@ -4,7 +4,7 @@
 \alias{do_put}
 \title{Execute a PUT request to this AmCAT API, returning the json result}
 \usage{
-do_put(credentials, url, body, encode = "json", ...)
+do_put(credentials, url, body, encode = "json-auto", auto_unbox = TRUE, ...)
 }
 \description{
 Execute a PUT request to this AmCAT API, returning the json result

@@ -4,7 +4,7 @@
 \alias{do_post}
 \title{Execute a POST request to this AmCAT API, returning the json result}
 \usage{
-do_post(credentials, url, body, encode = "json", ...)
+do_post(credentials, url, body, encode = "json-auto", auto_unbox = TRUE, ...)
 }
 \description{
 Execute a POST request to this AmCAT API, returning the json result

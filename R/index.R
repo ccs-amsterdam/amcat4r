@@ -35,9 +35,9 @@ create_index <- function(index, guest_role=NULL, credentials=NULL) {
 #' @export
 upload_documents <- function(index, documents, columns=NULL, credentials=NULL) {
   body = list(documents=documents)
-  if (!is.null(columns)) body$columns = columns
-  body = jsonlite::toJSON(body, null='null')
-  request(paste0("/index/", index, "/documents"), request_function=httr::POST, body=body, encode="raw", credentials=credentials)
+  if (!is.null(columns)) body$columns = lapply(columns, jsonlite::unbox)
+  do_post(credentials, c("index", index, "documents"), body, auto_unbox=FALSE) |>
+    invisible()
 }
 
 #' List index users

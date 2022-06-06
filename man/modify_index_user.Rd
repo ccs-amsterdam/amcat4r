@@ -4,7 +4,7 @@
 \alias{modify_index_user}
 \title{Modify index user}
 \usage{
-modify_index_user(index, email, credentials = NULL)
+modify_index_user(index, email, role, credentials = NULL)
 }
 \arguments{
 \item{index}{The index to list}
