@@ -28,7 +28,6 @@ do_post <- function(credentials, url, body, encode="json-auto", auto_unbox=TRUE,
   if (encode == "json-auto") {
     body = jsonlite::toJSON(body, null='null', auto_unbox=auto_unbox)
     encode = "raw"
-    cat(body)
   }
   request(credentials, url, request_function=httr::POST, body=body, encode=encode, ...)
 }
