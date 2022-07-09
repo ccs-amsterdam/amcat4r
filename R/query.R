@@ -50,4 +50,18 @@ query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials
   if ("_query" %in% colnames(d)) d <- rename(d, .query=`_query`)
   d
 }
+#' Add or remove tags to/from documents by query or ID
+#' @param index The index to query
+#' @param field The tag field name
+#' @param tag The tag to add or remove
+#' @param action 'add' or 'remove' the tags
+#' @param queries An optional vector of queries to run (implicit OR)
+#' @param filters An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))
+#' @param ids A vector of ids to add/remove tags from
+#' @param credentials The credentials to use. If not given, use last login information
+#' @export
+update_tags <- function(index, action, field, tag, ids=NULL, queries=NULL, filters=NULL, credentials=NULL) {
+  body = list(field=field, action=action, tag=tag, ids=ids, queries=queries, filters=filters)
+  do_post(credentials, c("index", index, "tags_update"), body=body)
+}
 
