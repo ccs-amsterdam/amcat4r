@@ -78,3 +78,12 @@ modify_index_user <- function(index, email, role, credentials=NULL) {
   body = list(role=role)
   invisible(do_put(credentials, c("index", index, "users", email), body=body))
 }
+
+
+#' Refresh an index
+#'
+#' @param index The index to refresh
+#' @export
+refresh_index <- function(index, credentials=NULL) {
+  invisible(do_get(credentials, c("index", index, "refresh")))
+}
