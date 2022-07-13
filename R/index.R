@@ -87,3 +87,12 @@ modify_index_user <- function(index, email, role, credentials=NULL) {
 refresh_index <- function(index, credentials=NULL) {
   invisible(do_get(credentials, c("index", index, "refresh")))
 }
+
+#' Set fields
+#'
+#' @param index The index to set fields for
+#' @param fields A list with fields and data types, e.g. list(author="keyword")
+#' @export
+set_fields <- function(index, fields, credentials=NULL) {
+  invisible(do_post(credentials, c("index", index, "fields"), body=fields))
+}

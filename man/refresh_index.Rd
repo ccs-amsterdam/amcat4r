@@ -4,7 +4,7 @@
 \alias{refresh_index}
 \title{Refresh an index}
 \usage{
-refresh_index(index)
+refresh_index(index, credentials = NULL)
 }
 \arguments{
 \item{index}{The index to refresh}
