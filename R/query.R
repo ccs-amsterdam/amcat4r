@@ -16,10 +16,8 @@ query_documents <- function(
     max_pages=1) {
   types = get_fields(index)
   convert = function(row) {
-    for (tag_col in types$name[types$type == "tag"]) {
-      if (tag_col %in% names(row)) {
+    for (tag_col in intersect(names(row), types$name[types$type == "tag"])) {
         row[tag_col] = paste(row[[tag_col]], collapse=merge_tags)
-      }
     }
     row
   }
@@ -43,7 +41,8 @@ query_documents <- function(
   }
   d = dplyr::bind_rows(results)
   if ("_id" %in% colnames(d)) d <- dplyr::rename(d, .id=`_id`)
-  for (date_col in types$name[types$type == "date"]) {
+  for (date_col in intersect(colnames(d), types$name[types$type == "date"])) {
+
     d[[date_col]] = lubridate::as_datetime(d[[date_col]])
   }
   d
