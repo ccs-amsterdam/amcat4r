@@ -96,3 +96,12 @@ refresh_index <- function(index, credentials=NULL) {
 set_fields <- function(index, fields, credentials=NULL) {
   invisible(do_post(credentials, c("index", index, "fields"), body=fields))
 }
+
+#' Get fields
+#'
+#' @param index The index to get fields for
+#' @export
+get_fields <- function(index, credentials=NULL) {
+  do_get(credentials, c("index", index, "fields")) |>
+    purrr::map_df(function(t) tibble::tibble(name=t$name, type=t$type))
+}

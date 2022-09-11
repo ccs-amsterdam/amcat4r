@@ -8,11 +8,22 @@
 #' @param per_page Number of results per page
 #' @param max_pages Stop after getting this many pages. Set to 0 to retrieve all.
 #' @param credentials The credentials to use. If not given, use last login information
+#' @param merge_tags Character to merge tag fields with, default ';'. Set to NULL to prevent merging.
 #' @export
 query_documents <- function(
     index, queries=NULL, fields=c("date", "title"), filters=NULL,
-    scroll="5m", per_page=1000, credentials=NULL,
+    scroll="5m", per_page=1000, credentials=NULL, merge_tags=";",
     max_pages=1) {
+  types = get_fields(index)
+  convert = function(row) {
+    for (tag_col in types$name[types$type == "tag"]) {
+      if (tag_col %in% names(row)) {
+        row[tag_col] = paste(row[[tag_col]], collapse=merge_tags)
+      }
+    }
+    row
+  }
+
   #TODO: convert dates into Date? <- could check field types. OTOH, maybe return table in more sensible format?
   body <- list(
     queries=queries, fields=fields, filters=filters,
@@ -22,15 +33,19 @@ query_documents <- function(
   while (T) {
     r = do_post(credentials, c("index", index, "query"), body=body, error_on_404=FALSE)
     if (is.null(r)) break
-    new_results = dplyr::bind_rows(r$results)
+    new_results = r$results
+    if (!is.null(merge_tags)) new_results = purrr::map(new_results, convert)
+    new_results = dplyr::bind_rows(new_results)
     results <- append(results, list(new_results))
     message(paste0("Retrieved ", nrow(new_results), " results in ", length(results), " pages"))
     if (max_pages > 0 & length(results) >= max_pages) break
     body$scroll_id <- r$meta$scroll_id
   }
   d = dplyr::bind_rows(results)
-  if ("_id" %in% colnames(d)) d <- rename(d, .id=`_id`)
-
+  if ("_id" %in% colnames(d)) d <- dplyr::rename(d, .id=`_id`)
+  for (date_col in types$name[types$type == "date"]) {
+    d[[date_col]] = lubridate::as_datetime(d[[date_col]])
+  }
   d
 }
 

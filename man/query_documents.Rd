@@ -12,6 +12,7 @@ query_documents(
   scroll = "5m",
   per_page = 1000,
   credentials = NULL,
+  merge_tags = ";",
   max_pages = 1
 )
 }
@@ -29,6 +30,8 @@ query_documents(
 \item{per_page}{Number of results per page}
 
 \item{credentials}{The credentials to use. If not given, use last login information}
+
+\item{merge_tags}{Character to merge tag fields with, default ';'. Set to NULL to prevent merging.}
 
 \item{max_pages}{Stop after getting this many pages. Set to 0 to retrieve all.}
 }
