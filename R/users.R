@@ -12,6 +12,7 @@ login <- function(host, username, password=NULL) {
   httr::stop_for_status(r)
   token = httr::content(r)$access_token
   credentials = list(host=host, username=username, token=token)
+  if (is.null(token)) stop("Login request unsuccessful. Did you enter the correct host address?")
 
   pkg.env$current = credentials
   invisible(credentials)
