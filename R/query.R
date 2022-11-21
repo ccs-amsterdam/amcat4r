@@ -7,7 +7,7 @@
 #' @param scroll Time to keep scrolling cursor alive
 #' @param per_page Number of results per page
 #' @param max_pages Stop after getting this many pages. Set to 0 to retrieve all.
-#' @param credentials The credentials to use. If not given, use last login information
+#' @param credentials The credentials to use. If not given, uses last login information
 #' @param merge_tags Character to merge tag fields with, default ';'. Set to NULL to prevent merging.
 #' @export
 query_documents <- function(
@@ -40,7 +40,7 @@ query_documents <- function(
     body$scroll_id <- r$meta$scroll_id
   }
   d = dplyr::bind_rows(results)
-  if ("_id" %in% colnames(d)) d <- dplyr::rename(d, .id=`_id`)
+  if ("_id" %in% colnames(d)) d <- dplyr::rename(d, .id="_id")
   for (date_col in intersect(colnames(d), types$name[types$type == "date"])) {
 
     d[[date_col]] = lubridate::as_datetime(d[[date_col]])
@@ -54,14 +54,14 @@ query_documents <- function(
 #' @param axes The aggregation axes, e.g. list(list(field="publisher", list(field="date", interval="year")))
 #' @param queries An optional vector of queries to run (implicit OR)
 #' @param filters An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))
-#' @param credentials The credentials to use. If not given, use last login information
+#' @param credentials The credentials to use. If not given, uses last login information
 #' @export
 query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials=NULL) {
   #TODO: convert dates into Date? <- could check field types. OTOH, maybe return table in more sensible format?
   body = list(axes=axes, queries=queries, filters=filters)
   r = do_post(credentials, c("index", index, "aggregate"), body=body)
   d = dplyr::bind_rows(r$data)
-  if ("_query" %in% colnames(d)) d <- rename(d, .query=`_query`)
+  if ("_query" %in% colnames(d)) d <- dplyr::rename(d, .query = "_query")
   d
 }
 #' Add or remove tags to/from documents by query or ID
@@ -72,7 +72,7 @@ query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials
 #' @param queries An optional vector of queries to run (implicit OR)
 #' @param filters An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))
 #' @param ids A vector of ids to add/remove tags from
-#' @param credentials The credentials to use. If not given, use last login information
+#' @param credentials The credentials to use. If not given, uses last login information
 #' @export
 update_tags <- function(index, action, field, tag, ids=NULL, queries=NULL, filters=NULL, credentials=NULL) {
   body = list(field=field, action=action, tag=tag, ids=ids, queries=queries, filters=filters)

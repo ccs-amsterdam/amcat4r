@@ -1,12 +1,23 @@
 Package: amcat4r
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Title: Controlling amcat4 from R
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Version: 0.0.1.9000
+Authors@R: 
+    c(person("Wouter", "van Atteveldt", email = "wouter@vanatteveldt.com", role = c("aut", "cre")),
+    person("Johannes", "Gruber", email = "johannesb.gruber@gmail.com", role = "ctb"))
+Imports:
+    httr,
+    dplyr,
+    jsonlite,
+    lubridate,
+    methods,
+    purrr,
+    tibble
+Suggests:
+    rstudioapi
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.2

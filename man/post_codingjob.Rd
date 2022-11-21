@@ -9,7 +9,7 @@ post_codingjob(codingjob, credentials = NULL)
 \arguments{
 \item{codingjob}{The job as a (json) list}
 
-\item{credentials}{The credentials to use. If not given, use last login information}
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Post a codingjob to the annotation backend

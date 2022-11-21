@@ -8,6 +8,8 @@ refresh_index(index, credentials = NULL)
 }
 \arguments{
 \item{index}{The index to refresh}
+
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Refresh an index

@@ -7,7 +7,9 @@
 delete_index(index, credentials = NULL)
 }
 \arguments{
-\item{credentials}{The credentials to use. If not given, use last login information}
+\item{index}{name of the index on this server}
+
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Delete an index

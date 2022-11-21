@@ -30,7 +30,7 @@ update_tags(
 
 \item{filters}{An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))}
 
-\item{credentials}{The credentials to use. If not given, use last login information}
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Add or remove tags to/from documents by query or ID

@@ -7,7 +7,7 @@
 list_indexes(credentials = NULL)
 }
 \arguments{
-\item{credentials}{The credentials to use. If not given, use last login information}
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \value{
 a tibble with index names and role

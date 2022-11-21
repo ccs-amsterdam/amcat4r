@@ -1,6 +1,7 @@
 pkg.env <- new.env()
 
 #' Helper function to get credentials from artugment or pkg.env
+#' @noRd
 get_credentials = function(credentials=NULL) {
   if (is.null(credentials)) {
     if (is.null(pkg.env$current)) stop("Please login() first")
@@ -10,6 +11,7 @@ get_credentials = function(credentials=NULL) {
 }
 
 #' Helper function to execute a request to this API
+#' @noRd
 request <- function(credentials, url, request_function=httr::GET, error_on_404=TRUE, ...) {
   credentials = get_credentials(credentials)
   url = paste(c(credentials$host, trimws(url, whitespace="/")), collapse="/")
@@ -24,6 +26,7 @@ request <- function(credentials, url, request_function=httr::GET, error_on_404=T
 }
 
 #' Execute a POST request to this AmCAT API, returning the json result
+#' @noRd
 do_post <- function(credentials, url, body, encode="json-auto", auto_unbox=TRUE, ...) {
   if (encode == "json-auto") {
     body = jsonlite::toJSON(body, null='null', auto_unbox=auto_unbox)
@@ -33,6 +36,7 @@ do_post <- function(credentials, url, body, encode="json-auto", auto_unbox=TRUE,
 }
 
 #' Execute a PUT request to this AmCAT API, returning the json result
+#' @noRd
 do_put <- function(credentials, url, body, encode="json-auto", auto_unbox=TRUE, ...) {
   if (encode == "json-auto") {
     body = jsonlite::toJSON(body, null='null', auto_unbox=auto_unbox)
@@ -41,11 +45,13 @@ do_put <- function(credentials, url, body, encode="json-auto", auto_unbox=TRUE, 
 }
 
 #' Execute a GET request to this AmCAT API, returning the json result
+#' @noRd
 do_get <- function(credentials, url, ...) {
   request(credentials, url, request_function=httr::GET, ...)
 }
 
 #' Execute a DELETE request to this AmCAT API, returning the json result
+#' @noRd
 do_delete <- function(credentials, url, ...) {
   request(credentials, url, request_function=httr::DELETE, ...)
 }

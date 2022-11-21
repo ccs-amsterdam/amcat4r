@@ -12,6 +12,8 @@ add_index_user(index, email, role, credentials = NULL)
 \item{email}{The email of an (existing) user}
 
 \item{role}{The role of the user (METAREADER, READER, WRITER, ADMIN)}
+
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Add index user

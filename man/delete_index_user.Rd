@@ -10,6 +10,8 @@ delete_index_user(index, email, credentials = NULL)
 \item{index}{The index to list}
 
 \item{email}{The email of an (existing) user}
+
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Delete index user

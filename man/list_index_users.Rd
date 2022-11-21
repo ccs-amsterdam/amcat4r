@@ -8,6 +8,8 @@ list_index_users(index, credentials = NULL)
 }
 \arguments{
 \item{index}{The index to list}
+
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 List index users

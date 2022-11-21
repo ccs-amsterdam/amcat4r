@@ -10,6 +10,8 @@ modify_user(email, new_password, credentials = NULL)
 \item{email}{email of the user to modify}
 
 \item{new_password}{new password for the user}
+
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Modify an existing user

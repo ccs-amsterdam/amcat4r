@@ -29,7 +29,7 @@ query_documents(
 
 \item{per_page}{Number of results per page}
 
-\item{credentials}{The credentials to use. If not given, use last login information}
+\item{credentials}{The credentials to use. If not given, uses last login information}
 
 \item{merge_tags}{Character to merge tag fields with, default ';'. Set to NULL to prevent merging.}
 

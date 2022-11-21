@@ -12,6 +12,8 @@ upload_documents(index, documents, columns = NULL, credentials = NULL)
 \item{documents}{A data frame with columns title, text, date, and optional other columns}
 
 \item{columns}{An optional list with data types, e.g. list(author="keyword")}
+
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Upload documents

@@ -6,6 +6,9 @@
 \usage{
 list_users(credentials = NULL)
 }
+\arguments{
+\item{credentials}{The credentials to use. If not given, uses last login information}
+}
 \description{
 List users
 }

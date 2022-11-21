@@ -9,7 +9,7 @@ get_codingjob(id, credentials = NULL)
 \arguments{
 \item{id}{the job ID}
 
-\item{credentials}{The credentials to use. If not given, use last login information}
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Retrieve a codingjob (including results)

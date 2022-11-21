@@ -20,6 +20,8 @@ create_user(
 \item{global_role}{global role of the user ("writer" or "admin")}
 
 \item{index_access}{index to grant access to for the new user}
+
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Create a new user

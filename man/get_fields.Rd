@@ -8,6 +8,8 @@ get_fields(index, credentials = NULL)
 }
 \arguments{
 \item{index}{The index to get fields for}
+
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Get fields

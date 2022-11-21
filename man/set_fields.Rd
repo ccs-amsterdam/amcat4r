@@ -10,6 +10,8 @@ set_fields(index, fields, credentials = NULL)
 \item{index}{The index to set fields for}
 
 \item{fields}{A list with fields and data types, e.g. list(author="keyword")}
+
+\item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
 Set fields
