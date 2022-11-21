@@ -4,7 +4,7 @@
 #' @return a tibble with index names and role
 #' @export
 list_indexes <- function(credentials=NULL) {
-  do_get(credentials, "index") |> dplyr::bind_rows()
+  do_get(credentials, c("index", "")) |> dplyr::bind_rows()
 }
 
 #' Delete an index
