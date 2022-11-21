@@ -24,7 +24,7 @@ delete_index <- function(index, credentials=NULL) {
 #' @export
 create_index <- function(index, guest_role=NULL, credentials=NULL) {
   body = list(name=index, guest_role=guest_role)
-  invisible(do_post(credentials, "/index/",  body=body))
+  invisible(do_post(credentials, c("index", ""),  body=body))
 }
 
 #' Upload documents
