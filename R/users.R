@@ -36,5 +36,5 @@ create_user <- function(email,
     email = email, password = password, global_role = global_role,
     index_access = index_access
   )
-  invisible(do_post(credentials, c("users"), body))
+  invisible(do_post(credentials, c("users", ""), body))
 }
