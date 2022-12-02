@@ -19,8 +19,10 @@ delete_index <- function(index, credentials=NULL) {
 #' Create an index
 #'
 #' @param index Name of the index to create
-#' @param guest_role ???
-#' @param credentials The credentials to use. If not given, uses last login information
+#' @param guest_role Role for unauthorized users. Options are "admin", "writer",
+#'   "reader" and "metareader".
+#' @param credentials The credentials to use. If not given, uses last login
+#'   information
 #' @export
 create_index <- function(index, guest_role=NULL, credentials=NULL) {
   body = list(name=index, guest_role=guest_role)
@@ -35,6 +37,12 @@ create_index <- function(index, guest_role=NULL, credentials=NULL) {
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
 upload_documents <- function(index, documents, columns=NULL, credentials=NULL) {
+  req_fields <- c("title", "date", "text") # hard coded, might change later
+  if (any(sapply(req_fields, function(c) any(is.na(documents[[c]])))) |
+      !all(req_fields %in% names(documents))) {
+    req_fields[length(req_fields)] <- paste("and", req_fields[length(req_fields)])
+    stop("The fields ", paste(req_fields, collapse = ", "), " are required and can never be NA")
+  }
   body = list(documents=documents)
   if (!is.null(columns)) body$columns = lapply(columns, jsonlite::unbox)
   do_post(credentials, c("index", index, "documents"), body, auto_unbox=FALSE) |>
