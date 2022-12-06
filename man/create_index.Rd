@@ -9,9 +9,11 @@ create_index(index, guest_role = NULL, credentials = NULL)
 \arguments{
 \item{index}{Name of the index to create}
 
-\item{guest_role}{???}
+\item{guest_role}{Role for unauthorized users. Options are "admin", "writer",
+"reader" and "metareader".}
 
-\item{credentials}{The credentials to use. If not given, uses last login information}
+\item{credentials}{The credentials to use. If not given, uses last login
+information}
 }
 \description{
 Create an index

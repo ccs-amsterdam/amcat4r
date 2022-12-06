@@ -31,22 +31,39 @@ create_index <- function(index, guest_role=NULL, credentials=NULL) {
 
 #' Upload documents
 #'
-#' @param index The index name to create
-#' @param documents A data frame with columns title, text, date, and optional other columns
-#' @param columns An optional list with data types, e.g. list(author="keyword")
-#' @param credentials The credentials to use. If not given, uses last login information
+#' @param index The index name to create.
+#' @param documents A data frame with columns title, text, date, and optional
+#'   other columns.
+#' @param columns An optional list with data types, e.g. list(author = "keyword").
+#' @param chunk_size Uploads are broken into chunks to prevent errors. Smaller
+#'   chunks are less error-prone, but this also makes the upload slower.
+#' @param verbose Should a progress bar be printed during upload.
+#' @param credentials The credentials to use. If not given, uses last login
+#'   information.
 #' @export
-upload_documents <- function(index, documents, columns=NULL, credentials=NULL) {
+upload_documents <- function(index,
+                             documents,
+                             columns = NULL,
+                             chunk_size = 10000L,
+                             verbose = TRUE,
+                             credentials = NULL) {
   req_fields <- c("title", "date", "text") # hard coded, might change later
   if (any(sapply(req_fields, function(c) any(is.na(documents[[c]])))) |
       !all(req_fields %in% names(documents))) {
     req_fields[length(req_fields)] <- paste("and", req_fields[length(req_fields)])
     stop("The fields ", paste(req_fields, collapse = ", "), " are required and can never be NA")
   }
-  body = list(documents=documents)
-  if (!is.null(columns)) body$columns = lapply(columns, jsonlite::unbox)
-  do_post(credentials, c("index", index, "documents"), body, auto_unbox=FALSE) |>
-    invisible()
+  # chunk uploads
+  rows <- seq_len(nrow(documents))
+  chunks <- split(rows, ceiling(seq_along(rows) / chunk_size))
+  if (verbose & length(chunks) > 1L) pb <- progress::progress_bar$new(total = length(chunks))
+  for (r in chunks) {
+    if (verbose) pb$tick()
+    body <- list(documents = documents[r, ])
+    if (!is.null(columns)) body$columns <- lapply(columns, jsonlite::unbox)
+    do_post(credentials, c("index", index, "documents"), body, auto_unbox = FALSE) |>
+      invisible()
+  }
 }
 
 #' List index users
