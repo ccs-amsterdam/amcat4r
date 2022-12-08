@@ -17,7 +17,7 @@ Execute commands inside a running container
 \examples{
 \dontrun{
 docker_exec(id = "amcat4",
-cmd = "amcat4 create-admin --username admin --password supergeheim")
+            cmd = "amcat4 create-admin --username admin --password supergeheim")
 
 docker_exec(id = "amcat4",
             cmd = "amcat4 create-test-index")

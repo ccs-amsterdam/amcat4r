@@ -9,13 +9,15 @@ Authors@R:
     person("Johannes", "Gruber", email = "johannesb.gruber@gmail.com", role = "ctb"))
 Imports:
     httr,
+    httr2,
     dplyr,
     jsonlite,
     lubridate,
     methods,
     purrr,
     progress,
-    tibble
+    tibble,
+    yaml
 Suggests:
     rstudioapi
 License: MIT + file LICENSE

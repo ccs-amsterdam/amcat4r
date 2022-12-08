@@ -8,6 +8,8 @@ docker_lc(..., all = FALSE)
 }
 \arguments{
 \item{...}{named values are used as filters.}
+
+\item{all}{include stopped containers.}
 }
 \description{
 List docker containers

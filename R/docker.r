@@ -19,8 +19,6 @@ run_amcat_docker <- function(compose = NULL, force = FALSE) {
     compose <- url("https://raw.githubusercontent.com/JBGruber/amcat4docker/main/docker-compose.yml")
   }
   config <- parse_yml(x = compose)
-  if (methods::is(compose, "connection")) try(close(compose))
-
 
   # set up networks
   for (n in names(config$networks)) {
@@ -33,7 +31,7 @@ run_amcat_docker <- function(compose = NULL, force = FALSE) {
   conf_imgs <- s_pull(config$services, "Image")
   conf_cont <- s_pull(config$services, "container_name")
   imgs <- docker_li(reference = conf_imgs)$tags
-  containers <- docker_lc(name = conf_cont)$name
+  containers <- docker_lc(name = conf_cont, all = TRUE)$name
 
   if (force) {
     lapply(containers, function(c) {
@@ -41,17 +39,18 @@ run_amcat_docker <- function(compose = NULL, force = FALSE) {
       docker_rmc(c, force = TRUE)
     })
     lapply(imgs, function(i) docker_rmi(i, force = TRUE))
-  } else {
-    config$services <- config$services[!conf_imgs %in% imgs]
+    imgs <- containers <- character()
   }
 
   # create images
   lapply(config$services, function(service)
-    docker_create_image(image = service$Image))
+    if(!service$Image %in% imgs)
+      docker_create_image(image = service$Image))
 
   # create containers
   lapply(config$services, function(service)
-    docker_create_container(name = service$container_name, body = service))
+    if (!service$container_name %in% containers)
+      docker_create_container(name = service$container_name, body = service))
 
   # start containers
   lapply(config$services, function(service)
@@ -60,6 +59,38 @@ run_amcat_docker <- function(compose = NULL, force = FALSE) {
   if (all(conf_cont %in% docker_lc(name = conf_cont)$name)) {
     message("all done!")
   }
+}
+
+
+#' Stop docker containers with AmCAT modules
+#'
+#' @param filters Names of containers or named values for other filters. (See
+#'   [https://docs.docker.com/engine/api/v1.41/#tag/Container/operation/ContainerList])
+#'
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # stop AmCAT modules
+#' stop_amcat_docker()
+#'
+#' # stop container by id
+#' stop_amcat_docker(filters = c(id = "a6cbe4787227"))
+#'
+#' # stop all containers
+#' stop_amcat_docker(filters = "")
+#' }
+stop_amcat_docker <- function(filters = c("elastic", "amcat")) {
+  if (is.null(names(filters)))  {
+    filters <- list(filters)
+    names(filters) <- "name"
+  } else {
+    filters <- as.list(filters)
+  }
+  do.call(docker_lc, filters)$name |>
+    lapply(docker_stop) |>
+    invisible()
 }
 
 
@@ -101,7 +132,7 @@ docker_base_req <- function(verbose = TRUE) {
   if (R.Version()$os == "mingw32") {
     req <- httr2::request("http://localhost:2375")
   } else {
-    req <- httr2::request("http://localhost:80") %>%
+    req <- httr2::request("http://localhost:80") |>
       httr2::req_options(UNIX_SOCKET_PATH = "/var/run/docker.sock")
   }
   if(verbose) req <- httr2::req_options(req, debugfunction = return_status, verbose = TRUE)
@@ -117,7 +148,7 @@ return_status <- function(type, sts) {
     msgs <- unlist(msgs[!is.na(msgs)], recursive = TRUE)
     # glob_msgs <<- c(glob_msgs, list(msgs))
     for (msg in msgs) {
-      message(crayon::white(msg))
+      message(msg)
     }
   }
 }
@@ -131,9 +162,9 @@ return_status <- function(type, sts) {
 #' @export
 docker_ping <- function() {
   res <- try(
-    docker_base_req() %>%
-      httr2::req_url_path_append("_ping") %>%
-      httr2::req_method("get") %>%
+    docker_base_req() |>
+      httr2::req_url_path_append("_ping") |>
+      httr2::req_method("get") |>
       httr2::req_perform()
   )
   if (methods::is(res, "try-error")) {
@@ -149,6 +180,7 @@ s_pull <- function(x, ...) {
 #' List docker containers
 #'
 #' @param ... named values are used as filters.
+#' @param all include stopped containers.
 #'
 #' @export
 #'
@@ -158,16 +190,16 @@ s_pull <- function(x, ...) {
 #' }
 docker_lc <- function(..., all = FALSE) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("/containers/json") %>%
-    httr2::req_method("get") %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("/containers/json") |>
+    httr2::req_method("get") |>
     httr2::req_url_query(all = tolower(all))
 
   dots <- list(...)
   if (length(dots) > 0) req <- httr2::req_url_query(req, filters = jsonlite::toJSON(dots))
 
-  res <- req %>%
-    httr2::req_perform() %>%
+  res <- req |>
+    httr2::req_perform() |>
     httr2::resp_body_json()
 
   tibble::tibble(
@@ -176,8 +208,8 @@ docker_lc <- function(..., all = FALSE) {
     status = s_pull(res, "Status"),
     id = s_pull(res, "Id"),
     ports = s_pull(res, "Ports")
-  ) %>%
-    mutate(name = gsub("^/", "", name))
+  ) |>
+    dplyr::mutate(name = gsub("^/", "", name))
 
 }
 
@@ -194,15 +226,15 @@ docker_lc <- function(..., all = FALSE) {
 #' }
 docker_li <- function(...) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("/images/json") %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("/images/json") |>
     httr2::req_method("get")
 
   dots <- list(...)
   if (length(dots) > 0) req <- httr2::req_url_query(req, filters = jsonlite::toJSON(dots))
 
-  res <- req %>%
-    httr2::req_perform() %>%
+  res <- req |>
+    httr2::req_perform() |>
     httr2::resp_body_json()
 
   tibble::tibble(
@@ -224,15 +256,15 @@ docker_li <- function(...) {
 #' }
 docker_ln <- function(...) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("/networks") %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("/networks") |>
     httr2::req_method("get")
 
   dots <- list(...)
   if (length(dots) > 0) req <- httr2::req_url_query(req, filters = jsonlite::toJSON(dots))
 
-  res <- req %>%
-    httr2::req_perform() %>%
+  res <- req |>
+    httr2::req_perform() |>
     httr2::resp_body_json()
 
   tibble::tibble(
@@ -247,9 +279,9 @@ docker_ln <- function(...) {
 # mainly used to translate json options from running containers
 docker_inspect_container <- function(id, as_json = TRUE) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("containers", id, "json") %>%
-    httr2::req_method("get") %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("containers", id, "json") |>
+    httr2::req_method("get") |>
     httr2::req_error(is_error = function(resp) FALSE)
 
   res <- httr2::req_perform(req)
@@ -264,9 +296,9 @@ docker_inspect_container <- function(id, as_json = TRUE) {
 
 docker_inspect_network <- function(id, as_json = TRUE) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("networks", id) %>%
-    httr2::req_method("get") %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("networks", id) |>
+    httr2::req_method("get") |>
     httr2::req_error(is_error = function(resp) FALSE)
 
   res <- httr2::req_perform(req)
@@ -286,10 +318,10 @@ docker_create_image <- function(image, verbose = TRUE) {
   if (is.null(image)) stop("name can not be NULL")
 
   # create image
-  req <- docker_base_req(verbose = verbose) %>%
-    httr2::req_url_path_append("images/create") %>%
-    httr2::req_url_query(fromImage = image) %>%
-    httr2::req_method("post") %>%
+  req <- docker_base_req(verbose = verbose) |>
+    httr2::req_url_path_append("images/create") |>
+    httr2::req_url_query(fromImage = image) |>
+    httr2::req_method("post") |>
     httr2::req_error(is_error = function(resp) FALSE)
 
   res <- httr2::req_perform(req)
@@ -300,14 +332,14 @@ docker_create_image <- function(image, verbose = TRUE) {
 
 docker_create_container <- function(name, body, verbosity = 3) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("containers/create") %>%
-    httr2::req_url_query(name = name) %>%
-    httr2::req_method("post") %>%
-    httr2::req_error(is_error = function(resp) FALSE) %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("containers/create") |>
+    httr2::req_url_query(name = name) |>
+    httr2::req_method("post") |>
+    httr2::req_error(is_error = function(resp) FALSE) |>
     httr2::req_body_json(body)
 
-  res <- httr2::req_perform(req) %>%
+  res <- httr2::req_perform(req) |>
     httr2::resp_body_json()
 
   if (length(res$Warnings) > 0) warning(res$Warnings)
@@ -317,14 +349,14 @@ docker_create_container <- function(name, body, verbosity = 3) {
 
 docker_create_network <- function(name, verbosity = 3) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("networks/create") %>%
-    httr2::req_url_query(name = name) %>%
-    httr2::req_method("post") %>%
-    httr2::req_error(is_error = function(resp) FALSE) %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("networks/create") |>
+    httr2::req_url_query(name = name) |>
+    httr2::req_method("post") |>
+    httr2::req_error(is_error = function(resp) FALSE) |>
     httr2::req_body_json(list(Name = name))
 
-  res <- httr2::req_perform(req, verbosity = verbosity) %>%
+  res <- httr2::req_perform(req, verbosity = verbosity) |>
     httr2::resp_body_json()
 
   if (nchar(res$Warning) > 0) warning(res$Warnings)
@@ -337,14 +369,14 @@ docker_create_network <- function(name, verbosity = 3) {
 ## remove images
 docker_rmi <- function(image, force = FALSE, noprune = FALSE) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("images", image) %>%
-    httr2::req_method("delete") %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("images", image) |>
+    httr2::req_method("delete") |>
     httr2::req_url_query(force = tolower(force),
-                         noprune = tolower(noprune)) %>%
+                         noprune = tolower(noprune)) |>
     httr2::req_error(is_error = function(resp) FALSE)
 
-  res <- httr2::req_perform(req) %>%
+  res <- httr2::req_perform(req) |>
     httr2::resp_body_json()
 
   if (length(res$Warnings) > 0) warning(res$Warnings)
@@ -355,11 +387,11 @@ docker_rmi <- function(image, force = FALSE, noprune = FALSE) {
 ## remove containers
 docker_rmc <- function(container, force = FALSE, link = FALSE) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("containers/", container) %>%
-    httr2::req_method("delete") %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("containers/", container) |>
+    httr2::req_method("delete") |>
     httr2::req_url_query(force = tolower(force),
-                         link = tolower(link)) %>%
+                         link = tolower(link)) |>
     httr2::req_error(is_error = function(resp) FALSE)
 
   res <- httr2::req_perform(req)
@@ -374,9 +406,9 @@ docker_rmc <- function(container, force = FALSE, link = FALSE) {
 # control functions
 docker_start <- function(id) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("containers", id, "start") %>%
-    httr2::req_method("post") %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("containers", id, "start") |>
+    httr2::req_method("post") |>
     httr2::req_error(is_error = function(resp) FALSE)
 
   res <- httr2::req_perform(req)
@@ -394,10 +426,10 @@ docker_start <- function(id) {
 
 docker_stop <- function(id, kill_after = 60L) {
 
-  req <- docker_base_req() %>%
-    httr2::req_url_path_append("containers", id, "stop") %>%
-    httr2::req_method("post") %>%
-    httr2::req_url_query(t = kill_after) %>%
+  req <- docker_base_req() |>
+    httr2::req_url_path_append("containers", id, "stop") |>
+    httr2::req_method("post") |>
+    httr2::req_url_query(t = kill_after) |>
     httr2::req_error(is_error = function(resp) FALSE)
 
   res <- httr2::req_perform(req)
@@ -422,7 +454,7 @@ docker_stop <- function(id, kill_after = 60L) {
 #' @examples
 #' \dontrun{
 #' docker_exec(id = "amcat4",
-#' cmd = "amcat4 create-admin --username admin --password supergeheim")
+#'             cmd = "amcat4 create-admin --username admin --password supergeheim")
 #'
 #' docker_exec(id = "amcat4",
 #'             cmd = "amcat4 create-test-index")
@@ -430,10 +462,10 @@ docker_stop <- function(id, kill_after = 60L) {
 docker_exec <- function(id, cmd) {
 
   # make exec instance
-  req <- docker_base_req(verbose = FALSE) %>%
-    httr2::req_url_path_append("containers", id, "exec") %>%
-    httr2::req_method("post") %>%
-    httr2::req_error(is_error = function(resp) FALSE) %>%
+  req <- docker_base_req(verbose = FALSE) |>
+    httr2::req_url_path_append("containers", id, "exec") |>
+    httr2::req_method("post") |>
+    httr2::req_error(is_error = function(resp) FALSE) |>
     httr2::req_body_json(list(
         "AttachStdin" =  TRUE,
         "AttachStdout" =  TRUE,
@@ -441,14 +473,14 @@ docker_exec <- function(id, cmd) {
         "Cmd" = as.list(unlist(strsplit(cmd, split = " ", fixed = TRUE)))
     ))
 
-  res <- httr2::req_perform(req) %>%
+  res <- httr2::req_perform(req) |>
     httr2::resp_body_json()
 
   # run instance
-  req2 <- docker_base_req(verbose = TRUE) %>%
-    httr2::req_url_path_append("exec", res$Id, "start") %>%
-    httr2::req_method("post") %>%
-    httr2::req_error(is_error = function(resp) FALSE) %>%
+  req2 <- docker_base_req(verbose = TRUE) |>
+    httr2::req_url_path_append("exec", res$Id, "start") |>
+    httr2::req_method("post") |>
+    httr2::req_error(is_error = function(resp) FALSE) |>
     httr2::req_body_json(list(
       "Detach" =  FALSE,
       "Tty" = FALSE
