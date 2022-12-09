@@ -4,15 +4,16 @@
 \alias{run_amcat_docker}
 \title{Run docker containers with AmCAT modules}
 \usage{
-run_amcat_docker(compose = NULL, force = FALSE)
+run_amcat_docker(compose = NULL, force_install = FALSE)
 }
 \arguments{
 \item{compose}{Path to a Docker Compose file. Uses
 https://github.com/JBGruber/amcat4docker/blob/main/docker-compose.yml by
 default.}
 
-\item{force}{If TRUE, removes all containers and images mentioned in the
-compose file and re-downloads them.}
+\item{force_install}{If TRUE, removes all containers and re-creates them from
+the compose file. If 2, the images are also re-downloaded. Danger: this
+will destroy the indexes in your containers!}
 }
 \description{
 Automatically sets up services defined in a Docker Compose file. Only options

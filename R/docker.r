@@ -6,11 +6,12 @@
 #' @param compose Path to a Docker Compose file. Uses
 #'   https://github.com/JBGruber/amcat4docker/blob/main/docker-compose.yml by
 #'   default.
-#' @param force If TRUE, removes all containers and images mentioned in the
-#'   compose file and re-downloads them.
+#' @param force_install If TRUE, removes all containers and re-creates them from
+#'   the compose file. If 2, the images are also re-downloaded. Danger: this
+#'   will destroy the indexes in your containers!
 #'
 #' @export
-run_amcat_docker <- function(compose = NULL, force = FALSE) {
+run_amcat_docker <- function(compose = NULL, force_install = FALSE) {
 
   docker_ping()
 
@@ -18,7 +19,11 @@ run_amcat_docker <- function(compose = NULL, force = FALSE) {
   if (is.null(compose)) {
     compose <- url("https://raw.githubusercontent.com/JBGruber/amcat4docker/main/docker-compose.yml")
   }
-  config <- parse_yml(x = compose)
+  if (any(methods::is(compose) != "docker_config")) {
+    config <- parse_yml(x = compose)
+  } else {
+    config <- compose
+  }
 
   # set up networks
   for (n in names(config$networks)) {
@@ -33,13 +38,16 @@ run_amcat_docker <- function(compose = NULL, force = FALSE) {
   imgs <- docker_li(reference = conf_imgs)$tags
   containers <- docker_lc(name = conf_cont, all = TRUE)$name
 
-  if (force) {
+  if (force > 0) {
     lapply(containers, function(c) {
       docker_stop(c)
       docker_rmc(c, force = TRUE)
     })
-    lapply(imgs, function(i) docker_rmi(i, force = TRUE))
-    imgs <- containers <- character()
+    containers <- character()
+    if (force > 1) {
+      lapply(imgs, function(i) docker_rmi(i, force = TRUE))
+      imgs <- character()
+    }
   }
 
   # create images
@@ -124,7 +132,8 @@ parse_yml <- function(x) {
   })
 
   compose$version <- NULL
-  compose
+  class(compose) <- c("docker_config", class(compose))
+  return(compose)
 }
 
 
@@ -145,11 +154,12 @@ return_status <- function(type, sts) {
     sts <- readBin(sts, character())
     lines <- unlist(strsplit(sts, "\r?\n", useBytes = TRUE))
     msgs <- jsonlite::stream_in(textConnection(grep("^\\{", lines, value = TRUE)), verbose = FALSE)
-    msgs <- unlist(msgs[!is.na(msgs)], recursive = TRUE)
-    # glob_msgs <<- c(glob_msgs, list(msgs))
-    for (msg in msgs) {
-      message(msg)
-    }
+    try({
+      msgs <- unlist(msgs[!is.na(msgs)], recursive = TRUE)
+      for (msg in msgs) {
+        message(msg)
+      }
+    })
   }
 }
 
@@ -492,6 +502,3 @@ docker_exec <- function(id, cmd) {
   }
 
 }
-
-
-
