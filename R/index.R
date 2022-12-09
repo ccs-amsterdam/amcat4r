@@ -58,7 +58,7 @@ upload_documents <- function(index,
   chunks <- split(rows, ceiling(seq_along(rows) / chunk_size))
   if (verbose & length(chunks) > 1L) pb <- progress::progress_bar$new(total = length(chunks))
   for (r in chunks) {
-    if (verbose) pb$tick()
+    if (verbose & length(chunks) > 1L) pb$tick()
     body <- list(documents = documents[r, ])
     if (!is.null(columns)) body$columns <- lapply(columns, jsonlite::unbox)
     do_post(credentials, c("index", index, "documents"), body, auto_unbox = FALSE) |>
