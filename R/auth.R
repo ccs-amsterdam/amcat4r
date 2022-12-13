@@ -50,15 +50,30 @@ amcat_auth <- function(server,
 
   class(tokens) <- c("amcat4_token", class(tokens))
 
-  cache_choice <- utils::menu(
-    c("Store on disk (less secure)",
-      "Store only in memory (less convenient)"),
-    title = glue::glue("Should the amcat token be stored only in memory (more secure) or ",
-                       " encrypted on disk (more convenient as authentication does ",
-                       "not need to be repeated in a new R session)?")
-  )
+  tokens <- tokens_cache(tokens, server)
+
+  cli::cli_inform(c("i" = "autentication at {server} complete"))
+  invisible(tokens)
+}
+
+# internal function to cache tokens
+tokens_cache <- function(tokens, server) {
+
+  cache_choice <- attr(tokens, "cache_choice")
+  if (is.null(cache_choice)) {
+    cache_choice <- utils::menu(
+      c("Store on disk (less secure)",
+        "Store only in memory (less convenient)",
+        "Authenticate each time"),
+      title = glue::glue("Should the amcat token be stored only in memory (more secure) or ",
+                         " encrypted on disk (more convenient as authentication does ",
+                         "not need to be repeated in a new R session)?")
+    )
+  }
+  attr(tokens, "cache_choice") <- cache_choice
 
   if (cache_choice == 1L) {
+
     cache <- getOption("amcat4r_token_cache")
     if (is.null(cache)) {
       cache <- file.path(rappdirs::user_cache_dir("httr2"),
@@ -66,14 +81,17 @@ amcat_auth <- function(server,
       dir.create(dirname(cache), showWarnings = FALSE, recursive = TRUE)
     }
     httr2::secret_write_rds(tokens, path = cache, key = I(rlang::hash(server)))
+
   } else if (cache_choice == 2L) {
+
     rlang::env_poke(pkg.env, nm = rlang::hash(server), tokens)
+
   }
 
-  cli::cli_inform(c("i" = "autentication at {server} complete"))
-  invisible(tokens)
+  return(tokens)
 }
 
+# internal function to check tokens
 amcat_token_check <- function(tokens, server) {
   if (tokens$expires_at < as.numeric(Sys.time() + 10)) {
     tokens <- amcat_token_refresh(tokens, server)
@@ -83,14 +101,19 @@ amcat_token_check <- function(tokens, server) {
 
 # internal function to refresh tokens
 amcat_token_refresh <- function(tokens, server) {
+
+  cache_choice <- attr(tokens, "cache_choice")
   middlecat <- get_config(server)[["middlecat_url"]]
   client <- httr2::oauth_client(
     id = "amcat4r",
     token_url = glue::glue("{middlecat}/api/token")
   )
   tokens <- httr2::oauth_flow_refresh(client, tokens$refresh_token)
+
   class(tokens) <- c("amcat4_token", class(tokens))
-  rlang::env_poke(pkg.env, nm = rlang::hash(server), tokens)
+  attr(tokens, "cache_choice") <- cache_choice
+  tokens <- tokens_cache(tokens, server)
+
   return(tokens)
 }
 
