@@ -8,14 +8,20 @@ Authors@R:
     c(person("Wouter", "van Atteveldt", email = "wouter@vanatteveldt.com", role = c("aut", "cre")),
     person("Johannes", "Gruber", email = "johannesb.gruber@gmail.com", role = "ctb"))
 Imports:
-    httr,
-    dplyr,
-    jsonlite,
-    lubridate,
-    methods,
-    purrr,
-    progress,
-    tibble
+  cli,
+  dplyr,
+  glue,
+  httr,
+  httr2,
+  jsonlite,
+  lubridate,
+  methods,
+  progress,
+  purrr,
+  rappdirs,
+  rlang,
+  tibble,
+  utils
 Suggests:
     rstudioapi
 License: MIT + file LICENSE
