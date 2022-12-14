@@ -8,6 +8,10 @@
 #'   disabled by default as it is not fully supported by the underlying httr2
 #'   package.
 #'
+#'   If you select to store your tokens on disk in the interactive menu, they
+#'   are stored in the location indicated by
+#'   \code{rappdirs::user_cache_dir("httr2")}.
+#'
 #'   The function needs to open a browser, which will usually only work in an
 #'   interactive session. However, you can save the returned object in an rds
 #'   file (with \code{saveRDS()}) and tell amcat4r where to look for it:
@@ -44,7 +48,8 @@ amcat_auth <- function(server,
     pkce = TRUE,
     auth_params = list(
       resource = server,
-      refresh = ifelse(refresh, "refresh", "static")
+      refresh = ifelse(refresh, "refresh", "static"),
+      session_type = "api_key"
     )
   )
 
@@ -60,7 +65,7 @@ amcat_auth <- function(server,
 tokens_cache <- function(tokens, server) {
 
   cache_choice <- attr(tokens, "cache_choice")
-  if (is.null(cache_choice)) {
+  if (is.null(cache_choice) & interactive()) {
     cache_choice <- utils::menu(
       c("Store on disk (less secure)",
         "Store only in memory (less convenient)",
@@ -108,7 +113,19 @@ amcat_token_refresh <- function(tokens, server) {
     id = "amcat4r",
     token_url = glue::glue("{middlecat}/api/token")
   )
-  tokens <- httr2::oauth_flow_refresh(client, tokens$refresh_token)
+
+  # Using the unexported function until
+  # https://github.com/r-lib/httr2/issues/186 is resolved.
+  token <- httr2:::token_refresh(
+    client,
+    refresh_token = tokens$refresh_token,
+    scope = NULL,
+    token_params = list(
+      resource = server,
+      refresh = ifelse(tokens$refresh_rotate, "refresh", "static"),
+      session_type = "api_key"
+    )
+  )
 
   class(tokens) <- c("amcat4_token", class(tokens))
   attr(tokens, "cache_choice") <- cache_choice
