@@ -1,7 +1,7 @@
 #' Authenticate to an AmCAT instance
 #'
 #' @param server URL of the AmCAT instance
-#' @param refresh Whether to enable refresh token rotation (see details).
+#' @param refresh_rotate Whether to enable refresh token rotation (see details).
 #'
 #' @details Enabling refresh token rotation ensures added security as leaked
 #'   refresh tokens also become invalidated after a short while. It is currently
@@ -27,7 +27,7 @@
 #'   amcat_auth("https://middlecat.up.railway.app/api/demo_resource")
 #' }
 amcat_auth <- function(server,
-                       refresh = FALSE) {
+                       refresh_rotate = FALSE) {
 
   middlecat <- get_config(server)[["middlecat_url"]]
 
@@ -48,7 +48,7 @@ amcat_auth <- function(server,
     pkce = TRUE,
     auth_params = list(
       resource = server,
-      refresh = ifelse(refresh, "refresh", "static"),
+      refresh = ifelse(refresh_rotate, "refresh", "static"),
       session_type = "api_key"
     )
   )
@@ -74,8 +74,8 @@ tokens_cache <- function(tokens, server) {
                          " encrypted on disk (more convenient as authentication does ",
                          "not need to be repeated in a new R session)?")
     )
+    attr(tokens, "cache_choice") <- cache_choice
   }
-  attr(tokens, "cache_choice") <- cache_choice
 
   if (cache_choice == 1L) {
 
@@ -116,13 +116,13 @@ amcat_token_refresh <- function(tokens, server) {
 
   # Using the unexported function until
   # https://github.com/r-lib/httr2/issues/186 is resolved.
-  token <- httr2:::token_refresh(
+  tokens <- httr2:::token_refresh(
     client,
     refresh_token = tokens$refresh_token,
     scope = NULL,
     token_params = list(
       resource = server,
-      refresh = ifelse(tokens$refresh_rotate, "refresh", "static"),
+      refresh = tokens$refresh_rotate,
       session_type = "api_key"
     )
   )
