@@ -9,6 +9,7 @@ Authors@R:
     person("Johannes", "Gruber", email = "johannesb.gruber@gmail.com", role = "ctb"))
 Imports:
   cli,
+  dockr,
   dplyr,
   glue,
   httr,
