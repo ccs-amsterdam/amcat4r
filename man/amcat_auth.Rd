@@ -4,12 +4,12 @@
 \alias{amcat_auth}
 \title{Authenticate to an AmCAT instance}
 \usage{
-amcat_auth(server, refresh = FALSE)
+amcat_auth(server, token_refresh = FALSE)
 }
 \arguments{
 \item{server}{URL of the AmCAT instance}
 
-\item{refresh}{Whether to enable refresh token rotation (see details).}
+\item{token_refresh}{Whether to enable refresh token rotation (see details).}
 }
 \value{
 an amcat4_token object
@@ -22,6 +22,10 @@ Enabling refresh token rotation ensures added security as leaked
   refresh tokens also become invalidated after a short while. It is currently
   disabled by default as it is not fully supported by the underlying httr2
   package.
+
+  If you select to store your tokens on disk in the interactive menu, they
+  are stored in the location indicated by
+  \code{rappdirs::user_cache_dir("httr2")}.
 
   The function needs to open a browser, which will usually only work in an
   interactive session. However, you can save the returned object in an rds

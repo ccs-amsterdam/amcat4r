@@ -1,7 +1,7 @@
 #' Authenticate to an AmCAT instance
 #'
 #' @param server URL of the AmCAT instance
-#' @param refresh_rotate Whether to enable refresh token rotation (see details).
+#' @param token_refresh Whether to enable refresh token rotation (see details).
 #'
 #' @details Enabling refresh token rotation ensures added security as leaked
 #'   refresh tokens also become invalidated after a short while. It is currently
@@ -27,7 +27,7 @@
 #'   amcat_auth("https://middlecat.up.railway.app/api/demo_resource")
 #' }
 amcat_auth <- function(server,
-                       refresh_rotate = FALSE) {
+                       token_refresh = FALSE) {
 
   middlecat <- get_config(server)[["middlecat_url"]]
 
@@ -48,7 +48,7 @@ amcat_auth <- function(server,
     pkce = TRUE,
     auth_params = list(
       resource = server,
-      refresh = ifelse(refresh_rotate, "refresh", "static"),
+      refresh_mode = ifelse(token_refresh, "refresh", "static"),
       session_type = "api_key"
     )
   )
@@ -122,7 +122,7 @@ amcat_token_refresh <- function(tokens, server) {
     scope = NULL,
     token_params = list(
       resource = server,
-      refresh = tokens$refresh_rotate,
+      refresh_mode = tokens$refresh_mode,
       session_type = "api_key"
     )
   )

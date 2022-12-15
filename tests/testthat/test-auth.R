@@ -1,7 +1,7 @@
 server <- "test"
 tokens <- list(access_token = "test",
                expires_at = as.numeric(Sys.time() + 60),
-               refresh_rotate = "static")
+               refresh_mode = "static")
 
 test_that("No token found",
           expect_error(amcat4r:::amcat_get_token(server),
