@@ -1,11 +1,17 @@
 pkg.env <- new.env()
 
-#' Helper function to get credentials from artugment or pkg.env
+#' Helper function to get credentials from argument or pkg.env
 #' @noRd
 get_credentials = function(credentials=NULL) {
+
   if (is.null(credentials)) {
-    if (is.null(pkg.env$current)) stop("Please login() first")
-    credentials = pkg.env$current
+    if (!is.null(pkg.env$current)) {
+      credentials = pkg.env$current
+    } else if (!is.null(pkg.env$current_server)) {
+      credentials = amcat_get_token(pkg.env$current_server)
+    } else {
+      stop("Please login() first")
+    }
   }
   credentials
 }
@@ -15,9 +21,13 @@ get_credentials = function(credentials=NULL) {
 request <- function(credentials, url, request_function=httr::GET, error_on_404=TRUE, ...) {
   credentials = get_credentials(credentials)
   url = paste(c(credentials$host, trimws(url, whitespace="/")), collapse="/")
+
+  token <- credentials$access_token
+  if (is.null(token)) token <- credentials$token
+
   r = request_function(
     url=url,
-    config=httr::add_headers(Authorization = paste("Bearer", credentials$token)),
+    config=httr::add_headers(Authorization = paste("Bearer", token)),
     ...)
   if (httr::status_code(r) == 404 & !error_on_404) return(NULL)
   if (httr::status_code(r) >= 300) message(httr::content(r, as="parsed"))

@@ -27,37 +27,47 @@
 #'   amcat_auth("https://middlecat.up.railway.app/api/demo_resource")
 #' }
 amcat_auth <- function(server,
-                       token_refresh = FALSE) {
+                       token_refresh = FALSE,
+                       force_refresh = FALSE) {
 
-  middlecat <- get_config(server)[["middlecat_url"]]
 
-  if (methods::is(getOption("browser"), "character")) {
-    if (getOption("browser") == "") {
-      cli::cli_abort(c("!" = "Authentication needs access to a browser. See ?amcat_auth."))
+  tokens <- amcat_get_token(server, warn = FALSE)
+  if (force_refresh) tokens <- NULL
+
+  if (is.null(tokens)) {
+
+    middlecat <- get_config(server)[["middlecat_url"]]
+
+    if (methods::is(getOption("browser"), "character")) {
+      if (getOption("browser") == "") {
+        cli::cli_abort(c("!" = "Authentication needs access to a browser. See ?amcat_auth."))
+      }
     }
+
+    client <- httr2::oauth_client(
+      id = "amcat4r",
+      token_url = glue::glue("{middlecat}/api/token")
+    )
+
+    tokens <- httr2::oauth_flow_auth_code(
+      client = client,
+      auth_url = glue::glue("{middlecat}/authorize"),
+      pkce = TRUE,
+      auth_params = list(
+        resource = server,
+        refresh_mode = ifelse(token_refresh, "refresh", "static"),
+        session_type = "api_key"
+      )
+    )
+
+    class(tokens) <- c("amcat4_token", class(tokens))
+
+
+    cli::cli_inform(c("i" = "autentication at {server} complete"))
+
   }
 
-  client <- httr2::oauth_client(
-    id = "amcat4r",
-    token_url = glue::glue("{middlecat}/api/token")
-  )
-
-  tokens <- httr2::oauth_flow_auth_code(
-    client = client,
-    auth_url = glue::glue("{middlecat}/authorize"),
-    pkce = TRUE,
-    auth_params = list(
-      resource = server,
-      refresh_mode = ifelse(token_refresh, "refresh", "static"),
-      session_type = "api_key"
-    )
-  )
-
-  class(tokens) <- c("amcat4_token", class(tokens))
-
   tokens <- tokens_cache(tokens, server)
-
-  cli::cli_inform(c("i" = "autentication at {server} complete"))
   invisible(tokens)
 }
 
@@ -77,22 +87,26 @@ tokens_cache <- function(tokens, server) {
     attr(tokens, "cache_choice") <- cache_choice
   }
 
-  if (cache_choice == 1L) {
+  if (cache_choice < 3L) {
 
-    cache <- getOption("amcat4r_token_cache")
-    if (is.null(cache)) {
-      cache <- file.path(rappdirs::user_cache_dir("httr2"),
-                         paste0(rlang::hash(server), "-token.rds.enc"))
-      dir.create(dirname(cache), showWarnings = FALSE, recursive = TRUE)
+    pkg.env$current_server <- server
+
+    if (cache_choice == 1L) {
+
+      cache <- getOption("amcat4r_token_cache")
+      if (is.null(cache)) {
+        cache <- file.path(rappdirs::user_cache_dir("httr2"),
+                           paste0(rlang::hash(server), "-token.rds.enc"))
+        dir.create(dirname(cache), showWarnings = FALSE, recursive = TRUE)
+      }
+      httr2::secret_write_rds(tokens, path = cache, key = I(rlang::hash(server)))
+
+    } else if (cache_choice == 2L) {
+
+      rlang::env_poke(pkg.env, nm = rlang::hash(server), tokens)
+
     }
-    httr2::secret_write_rds(tokens, path = cache, key = I(rlang::hash(server)))
-
-  } else if (cache_choice == 2L) {
-
-    rlang::env_poke(pkg.env, nm = rlang::hash(server), tokens)
-
   }
-
   return(tokens)
 }
 
@@ -143,7 +157,13 @@ get_config <- function(server) {
 }
 
 # internal function to retrieve token
-amcat_get_token <- function(server) {
+amcat_get_token <- function(server = NULL, warn = TRUE) {
+
+  if (is.null(server)) {
+    server <- pkg.env$current_server
+  }
+  tokens <- NULL
+
   # check memory cache first
   if (rlang::env_has(pkg.env, rlang::hash(server))) {
     tokens <- rlang::env_get(pkg.env, rlang::hash(server))
@@ -157,7 +177,7 @@ amcat_get_token <- function(server) {
     if (file.exists(disk_cache)) {
       tokens <- httr2::secret_read_rds(path = disk_cache,
                                        key = I(rlang::hash(server)))
-    } else {
+    } else if (warn) {
       cli::cli_abort(c("!" = "No authentication found. Did you run amcat_auth already?"))
     }
   }
