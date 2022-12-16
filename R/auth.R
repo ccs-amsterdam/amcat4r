@@ -181,5 +181,6 @@ amcat_get_token <- function(server = NULL, warn = TRUE) {
       cli::cli_abort(c("!" = "No authentication found. Did you run amcat_auth already?"))
     }
   }
-  return(tokens)
+
+  return(amcat_token_check(tokens))
 }
