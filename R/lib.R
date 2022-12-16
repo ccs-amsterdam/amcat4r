@@ -9,6 +9,7 @@ get_credentials = function(credentials=NULL) {
       credentials = pkg.env$current
     } else if (!is.null(pkg.env$current_server)) {
       credentials = amcat_get_token(pkg.env$current_server)
+      credentials$host <- pkg.env$current_server
     } else {
       stop("Please login() first")
     }

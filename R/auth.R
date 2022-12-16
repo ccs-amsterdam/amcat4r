@@ -182,5 +182,5 @@ amcat_get_token <- function(server = NULL, warn = TRUE) {
     }
   }
 
-  return(amcat_token_check(tokens))
+  return(amcat_token_check(tokens, server))
 }
