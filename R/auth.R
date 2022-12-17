@@ -28,47 +28,72 @@
 #' }
 amcat_auth <- function(server,
                        token_refresh = FALSE,
-                       force_refresh = FALSE) {
-
-
+                       force_refresh = FALSE,
+                       username = NULL,
+                       password = NULL) {
   tokens <- amcat_get_token(server, warn = FALSE)
   if (force_refresh) tokens <- NULL
 
   if (is.null(tokens)) {
 
-    middlecat <- get_config(server)[["middlecat_url"]]
-
-    if (methods::is(getOption("browser"), "character")) {
-      if (getOption("browser") == "") {
-        cli::cli_abort(c("!" = "Authentication needs access to a browser. See ?amcat_auth."))
-      }
+    if (is.null(username)) {
+      tokens <- get_middlecat_token(server=server, token_refresh=token_refresh)
+    } else {
+      tokens <- get_password_token(server=server, username=username, password=password)
     }
-
-    client <- httr2::oauth_client(
-      id = "amcat4r",
-      token_url = glue::glue("{middlecat}/api/token")
-    )
-
-    tokens <- httr2::oauth_flow_auth_code(
-      client = client,
-      auth_url = glue::glue("{middlecat}/authorize"),
-      pkce = TRUE,
-      auth_params = list(
-        resource = server,
-        refresh_mode = ifelse(token_refresh, "refresh", "static"),
-        session_type = "api_key"
-      )
-    )
-
-    class(tokens) <- c("amcat4_token", class(tokens))
-
-
-    cli::cli_inform(c("i" = "autentication at {server} complete"))
-
   }
-
   tokens <- tokens_cache(tokens, server)
   invisible(tokens)
+}
+
+# internal function to get a token from amcat directly using password auth
+get_password_token <- function(server, username, password) {
+  if (is.null(password)) {
+    if (rstudioapi::isAvailable()) {
+      password = rstudioapi::askForPassword(paste("Password for", server))
+    } else {
+      stop("password is missing")
+    }
+  }
+
+  cli::cli_inform(c("i" = "Requesting a token at {server} for username {username} using a password"))
+  r = httr::POST(paste0(server, "/auth/token"),
+                 body=list(username=username, password=password))
+
+  httr::stop_for_status(r)
+  cli::cli_inform(c("i" = "Authentication at {server} successful"))
+  httr::content(r)
+}
+
+# internal function to get a token from middlecat
+get_middlecat_token <- function(server, token_refresh=FALSE) {
+  middlecat <- get_config(server)[["middlecat_url"]]
+
+  if (methods::is(getOption("browser"), "character")) {
+    if (getOption("browser") == "") {
+      cli::cli_abort(c("!" = "Authentication needs access to a browser. See ?amcat_auth."))
+    }
+  }
+
+  client <- httr2::oauth_client(
+    id = "amcat4r",
+    token_url = glue::glue("{middlecat}/api/token")
+  )
+
+  tokens <- httr2::oauth_flow_auth_code(
+    client = client,
+    auth_url = glue::glue("{middlecat}/authorize"),
+    pkce = TRUE,
+    auth_params = list(
+      resource = server,
+      refresh_mode = ifelse(token_refresh, "refresh", "static"),
+      session_type = "api_key"
+    )
+  )
+
+  class(tokens) <- c("amcat4_token", class(tokens))
+  cli::cli_inform(c("i" = "autentication at {server} complete"))
+  tokens
 }
 
 # internal function to cache tokens
@@ -112,7 +137,7 @@ tokens_cache <- function(tokens, server) {
 
 # internal function to check tokens
 amcat_token_check <- function(tokens, server) {
-  if (tokens$expires_at < as.numeric(Sys.time() + 10)) {
+  if (!is.null(tokens$expires_at) && tokens$expires_at < as.numeric(Sys.time() + 10)) {
     tokens <- amcat_token_refresh(tokens, server)
   }
   return(tokens)

@@ -4,7 +4,13 @@
 \alias{amcat_auth}
 \title{Authenticate to an AmCAT instance}
 \usage{
-amcat_auth(server, token_refresh = FALSE)
+amcat_auth(
+  server,
+  token_refresh = FALSE,
+  force_refresh = FALSE,
+  username = NULL,
+  password = NULL
+)
 }
 \arguments{
 \item{server}{URL of the AmCAT instance}
