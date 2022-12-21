@@ -9,13 +9,22 @@ amcat_auth(
   token_refresh = FALSE,
   force_refresh = FALSE,
   username = NULL,
-  password = NULL
+  password = NULL,
+  cache = NULL
 )
 }
 \arguments{
 \item{server}{URL of the AmCAT instance}
 
 \item{token_refresh}{Whether to enable refresh token rotation (see details).}
+
+\item{force_refresh}{Overwrite existing cached authentications.}
+
+\item{username, password}{log in with username and password directly (not
+supported for all users).}
+
+\item{cache}{select where tokens should be cached to suppress the user menu.
+1 means to store on disk, 2 means to store only in memory.}
 }
 \value{
 an amcat4_token object

@@ -2,6 +2,11 @@
 #'
 #' @param server URL of the AmCAT instance
 #' @param token_refresh Whether to enable refresh token rotation (see details).
+#' @param force_refresh Overwrite existing cached authentications.
+#' @param username,password log in with username and password directly (not
+#'   supported for all users).
+#' @param cache select where tokens should be cached to suppress the user menu.
+#'   1 means to store on disk, 2 means to store only in memory.
 #'
 #' @details Enabling refresh token rotation ensures added security as leaked
 #'   refresh tokens also become invalidated after a short while. It is currently
@@ -30,18 +35,21 @@ amcat_auth <- function(server,
                        token_refresh = FALSE,
                        force_refresh = FALSE,
                        username = NULL,
-                       password = NULL) {
+                       password = NULL,
+                       cache = NULL) {
+
   tokens <- amcat_get_token(server, warn = FALSE)
   if (force_refresh) tokens <- NULL
 
   if (is.null(tokens)) {
-
     if (is.null(username)) {
-      tokens <- get_middlecat_token(server=server, token_refresh=token_refresh)
+      tokens <- get_middlecat_token(server = server, token_refresh = token_refresh)
     } else {
-      tokens <- get_password_token(server=server, username=username, password=password)
+      tokens <- get_password_token(server = server, username = username, password = password)
     }
   }
+
+  attr(tokens, "cache_choice") <- cache
   tokens <- tokens_cache(tokens, server)
   invisible(tokens)
 }
