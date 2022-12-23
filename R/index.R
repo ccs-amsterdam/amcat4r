@@ -44,7 +44,7 @@ create_index <- function(index, guest_role=NULL, credentials=NULL) {
 upload_documents <- function(index,
                              documents,
                              columns = NULL,
-                             chunk_size = 10000L,
+                             chunk_size = 100L,
                              verbose = TRUE,
                              credentials = NULL) {
   req_fields <- c("title", "date", "text") # hard coded, might change later
@@ -53,6 +53,7 @@ upload_documents <- function(index,
     req_fields[length(req_fields)] <- paste("and", req_fields[length(req_fields)])
     stop("The fields ", paste(req_fields, collapse = ", "), " are required and can never be NA")
   }
+  if (".id" %in% colnames(documents)) documents <- dplyr::rename(documents, "_id"=.id)
   # chunk uploads
   rows <- seq_len(nrow(documents))
   chunks <- split(rows, ceiling(seq_along(rows) / chunk_size))
