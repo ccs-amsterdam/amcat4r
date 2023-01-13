@@ -38,8 +38,11 @@ amcat_auth <- function(server,
                        password = NULL,
                        cache = NULL) {
 
-  tokens <- amcat_get_token(server, warn = FALSE)
-  if (force_refresh) tokens <- NULL
+  if (force_refresh) {
+    tokens <- NULL
+  } else {
+    tokens <- amcat_get_token(server, warn = FALSE)
+  }
 
   if (is.null(tokens)) {
     if (is.null(username)) {
@@ -63,13 +66,14 @@ get_password_token <- function(server, username, password) {
       stop("password is missing")
     }
   }
-
-  cli::cli_inform(c("i" = "Requesting a token at {server} for username {username} using a password"))
+  cli::cli_progress_bar()
+  cli::cli_progress_step("Requesting a token at {server} for username {username} using a password")
   r = httr::POST(paste0(server, "/auth/token"),
                  body=list(username=username, password=password))
 
   httr::stop_for_status(r)
-  cli::cli_inform(c("i" = "Authentication at {server} successful"))
+  cli::cli_progress_step("Authentication at {server} successful")
+  cli::cli_progress_done()
   httr::content(r)
 }
 
@@ -82,7 +86,8 @@ get_middlecat_token <- function(server, token_refresh=FALSE) {
       cli::cli_abort(c("!" = "Authentication needs access to a browser. See ?amcat_auth."))
     }
   }
-
+  cli::cli_progress_bar()
+  cli::cli_progress_step("Requesting a token at {server} using a {middlecat}")
   client <- httr2::oauth_client(
     id = "amcat4r",
     token_url = glue::glue("{middlecat}/api/token")
@@ -100,7 +105,8 @@ get_middlecat_token <- function(server, token_refresh=FALSE) {
   )
 
   class(tokens) <- c("amcat4_token", class(tokens))
-  cli::cli_inform(c("i" = "autentication at {server} complete"))
+  cli::cli_progress_step("Authentication at {server} successful")
+  cli::cli_progress_done()
   tokens
 }
 
