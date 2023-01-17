@@ -9,7 +9,7 @@ test_that("No token found",
 
 test_that("Not interactive",
           expect_error(
-            amcat_auth("https://middlecat.up.railway.app/api/demo_resource"),
+            amcat_login("https://middlecat.up.railway.app/api/demo_resource", force_refresh = TRUE),
             "OAuth 2\\.0 authorization code flow requires an interactive session"
           )
 )
@@ -17,7 +17,7 @@ test_that("Not interactive",
 test_that("No Browser found", {
   tmp <- getOption("browser")
   options("browser" = "")
-  expect_error(amcat_auth("https://middlecat.up.railway.app/api/demo_resource"),
+  expect_error(amcat_login("https://middlecat.up.railway.app/api/demo_resource", force_refresh = TRUE),
                "Authentication needs access to a browser.")
   options("browser" = tmp)
 })

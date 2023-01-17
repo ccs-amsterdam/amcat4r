@@ -29,14 +29,14 @@
 #'
 #' @examples
 #' \dontrun{
-#'   amcat_auth("https://middlecat.up.railway.app/api/demo_resource")
+#'   amcat_login("https://middlecat.up.railway.app/api/demo_resource")
 #' }
-amcat_auth <- function(server,
-                       token_refresh = FALSE,
-                       force_refresh = FALSE,
-                       username = NULL,
-                       password = NULL,
-                       cache = NULL) {
+amcat_login <- function(server,
+                        token_refresh = FALSE,
+                        force_refresh = FALSE,
+                        username = NULL,
+                        password = NULL,
+                        cache = NULL) {
 
   if (force_refresh) {
     tokens <- NULL
@@ -83,7 +83,7 @@ get_middlecat_token <- function(server, token_refresh=FALSE) {
 
   if (methods::is(getOption("browser"), "character")) {
     if (getOption("browser") == "") {
-      cli::cli_abort(c("!" = "Authentication needs access to a browser. See ?amcat_auth."))
+      cli::cli_abort(c("!" = "Authentication needs access to a browser. See ?amcat_login."))
     }
   }
   cli::cli_progress_bar()
@@ -217,7 +217,7 @@ amcat_get_token <- function(server = NULL, warn = TRUE) {
       tokens <- httr2::secret_read_rds(path = disk_cache,
                                        key = I(rlang::hash(server)))
     } else if (warn) {
-      cli::cli_abort(c("!" = "No authentication found. Did you run amcat_auth already?"))
+      cli::cli_abort(c("!" = "No authentication found. Did you run amcat_login already?"))
     }
   }
 

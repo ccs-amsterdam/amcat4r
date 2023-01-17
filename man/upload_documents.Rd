@@ -8,7 +8,7 @@ upload_documents(
   index,
   documents,
   columns = NULL,
-  chunk_size = 10000L,
+  chunk_size = 100L,
   verbose = TRUE,
   credentials = NULL
 )
