@@ -31,6 +31,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: run amcat docker containers
+        uses: isbang/compose-action@v1.4.1
+          with:
+            compose-file: "https://raw.githubusercontent.com/JBGruber/amcat4docker/main/docker-compose.yml"
+
+      - name: setup docker
+        run: |
+          docker exec -it amcat4 amcat4 add-admin admin
+          docker exec -it amcat4 amcat4 create-env -a admin -p supergeheim
+
       - uses: r-lib/actions/setup-pandoc@v2
 
       - uses: r-lib/actions/setup-r@v2
@@ -41,7 +51,9 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
+          extra-packages:
+            - any::rcmdcheck
+            - github::JBGruber/dockr
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2

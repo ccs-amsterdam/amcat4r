@@ -26,6 +26,8 @@ Suggests:
     dockr,
     rstudioapi,
     testthat
+Remotes:  
+    JBGruber/dockr
 License: MIT + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.2.3
