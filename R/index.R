@@ -53,7 +53,7 @@ upload_documents <- function(index,
     req_fields[length(req_fields)] <- paste("and", req_fields[length(req_fields)])
     stop("The fields ", paste(req_fields, collapse = ", "), " are required and can never be NA")
   }
-  if (".id" %in% colnames(documents)) documents <- dplyr::rename(documents, "_id"=.id)
+  if (".id" %in% colnames(documents)) colnames(documents) <- gsub("_id", ".id", colnames(documents), fixed = TRUE)
   # chunk uploads
   rows <- seq_len(nrow(documents))
   chunks <- split(rows, ceiling(seq_along(rows) / chunk_size))

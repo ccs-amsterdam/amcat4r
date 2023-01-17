@@ -34,7 +34,6 @@ jobs:
           VERSION=$(curl --silent https://api.github.com/repos/docker/compose/releases/latest | grep -Po '"tag_name": "\K.*\d')
           curl -SL https://github.com/docker/compose/releases/download/${VERSION}/docker-compose-$(uname -s)-$(uname -m) -o docker-compose2
           chmod +x docker-compose2
-          echo ^docker-compose2$ >> .Rbuildignore
           wget https://raw.githubusercontent.com/JBGruber/amcat4docker/main/docker-compose.yml
 
       - name: start amcat docker containers
@@ -64,3 +63,4 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
+          error-on: '"error"'
