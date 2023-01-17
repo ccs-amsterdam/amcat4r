@@ -38,7 +38,7 @@ jobs:
       - name: run amcat docker containers
         uses: isbang/compose-action@v1.4.1
         with:
-          up-flags: '--pull="missing" -d'
+          up-flags: '--pull="missing"'
           compose-file: "docker-compose.yml"
 
       - name: setup docker
