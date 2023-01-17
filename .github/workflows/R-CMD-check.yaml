@@ -31,10 +31,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: download docker-compose
+        run: |
+          wget https://raw.githubusercontent.com/JBGruber/amcat4docker/main/docker-compose.yml
+
       - name: run amcat docker containers
         uses: isbang/compose-action@v1.4.1
         with:
-          compose-file: "https://raw.githubusercontent.com/JBGruber/amcat4docker/main/docker-compose.yml"
+          compose-file: "docker-compose.yml"
 
       - name: setup docker
         run: |
