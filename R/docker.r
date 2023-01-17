@@ -13,6 +13,11 @@
 #' @export
 run_amcat_docker <- function(compose = NULL, force_install = FALSE) {
 
+  rlang::check_installed("dockr", action = function(...) {
+    rlang::check_installed("remotes")
+    remotes::install_github("JBGruber/dockr")
+  })
+
   # get settings
   if (is.null(compose)) {
     compose <- url("https://raw.githubusercontent.com/JBGruber/amcat4docker/main/docker-compose.yml")
