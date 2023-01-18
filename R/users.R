@@ -1,6 +1,7 @@
 #' List users
 #'
-#' @param credentials The credentials to use. If not given, uses last login information
+#' @param credentials The credentials to use. If not given, uses cached login
+#'   information.
 #'
 #' @export
 list_users <- function(credentials=NULL) {
@@ -10,26 +11,38 @@ list_users <- function(credentials=NULL) {
 
 #' Modify an existing user
 #'
-#' @param email email of the user to modify
-#' @param new_password new password for the user
-#' @param credentials The credentials to use. If not given, uses last login information
+#' @param email email of the user to modify.
+#' @param global_role global role of the user ("writer" or "admin").
+#' @param new_password new password for the user.
+#' @param credentials The credentials to use. If not given, uses cached login
+#'   information.
+#'
 #' @export
-modify_user <- function(email, new_password, credentials=NULL) {
-  body = list(password=new_password)
+modify_user <- function(email,
+                        global_role = "writer",
+                        new_password = NULL,
+                        credentials = NULL) {
+  body = list(
+    password = new_password,
+    global_role = global_role
+  )
   invisible(do_put(credentials, c("users", email), body))
 }
 
+
 #' Create a new user
 #'
-#' @param email email of the user to modify
-#' @param password new password for the user
-#' @param global_role global role of the user ("writer" or "admin")
-#' @param index_access index to grant access to for the new user
-#' @param credentials The credentials to use. If not given, uses last login information
+#' @param email email of the user to add.
+#' @param global_role global role of the user ("writer" or "admin").
+#' @param password new password for the user.
+#' @param index_access index to grant access to for the new user.
+#' @param credentials The credentials to use. If not given, uses cached login
+#'   information.
+#'
 #' @export
 create_user <- function(email,
-                        password,
-                        global_role = NULL,
+                        password = NULL,
+                        global_role = "writer",
                         index_access = NULL,
                         credentials = NULL) {
   body <- list(
@@ -38,3 +51,16 @@ create_user <- function(email,
   )
   invisible(do_post(credentials, c("users", ""), body))
 }
+
+#' Delete new user
+#'
+#' @param email email of the user to remove.
+#' @param credentials The credentials to use. If not given, uses cached login
+#'   information.
+#'
+#' @export
+delete_user <- function(email,
+                        credentials = NULL) {
+  invisible(do_delete(credentials, c("users", email)))
+}
+

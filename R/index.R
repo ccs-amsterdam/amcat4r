@@ -3,7 +3,7 @@
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @return a tibble with index names and role
 #' @export
-list_indexes <- function(credentials=NULL) {
+list_indexes <- function(credentials = NULL) {
   do_get(credentials, c("index", "")) |> dplyr::bind_rows()
 }
 
@@ -12,7 +12,7 @@ list_indexes <- function(credentials=NULL) {
 #' @param index name of the index on this server
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
-delete_index <- function(index, credentials=NULL) {
+delete_index <- function(index, credentials = NULL) {
   invisible(do_delete(credentials, c("/index/", index)))
 }
 
@@ -24,9 +24,10 @@ delete_index <- function(index, credentials=NULL) {
 #' @param credentials The credentials to use. If not given, uses last login
 #'   information
 #' @export
-create_index <- function(index, guest_role=NULL, credentials=NULL) {
-  body = list(name=index, guest_role=guest_role)
-  invisible(do_post(credentials, c("index", ""),  body=body))
+create_index <- function(index, guest_role = NULL, credentials = NULL) {
+  if (!is.null(guest_role)) guest_role <- tolower(guest_role)
+  body <- list(name = index, guest_role = guest_role)
+  invisible(do_post(credentials, c("index", ""), body = body))
 }
 
 #' Upload documents
@@ -49,7 +50,7 @@ upload_documents <- function(index,
                              credentials = NULL) {
   req_fields <- c("title", "date", "text") # hard coded, might change later
   if (any(sapply(req_fields, function(c) any(is.na(documents[[c]])))) |
-      !all(req_fields %in% names(documents))) {
+    !all(req_fields %in% names(documents))) {
     req_fields[length(req_fields)] <- paste("and", req_fields[length(req_fields)])
     stop("The fields ", paste(req_fields, collapse = ", "), " are required and can never be NA")
   }
@@ -72,8 +73,8 @@ upload_documents <- function(index,
 #' @param index The index to list
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
-list_index_users <- function(index, credentials=NULL) {
-  do_get(credentials, c("index", index, "users"))  |> dplyr::bind_rows()
+list_index_users <- function(index, credentials = NULL) {
+  do_get(credentials, c("index", index, "users")) |> dplyr::bind_rows()
 }
 
 #' Add index user
@@ -83,9 +84,9 @@ list_index_users <- function(index, credentials=NULL) {
 #' @param role The role of the user (METAREADER, READER, WRITER, ADMIN)
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
-add_index_user <- function(index, email, role, credentials=NULL) {
-  body = list(email=email, role=role)
-  invisible(do_post(credentials, c("index", index, "users"), body=body))
+add_index_user <- function(index, email, role, credentials = NULL) {
+  body <- list(email = email, role = toupper(role))
+  invisible(do_post(credentials, c("index", index, "users"), body = body))
 }
 
 #' Delete index user
@@ -94,7 +95,7 @@ add_index_user <- function(index, email, role, credentials=NULL) {
 #' @param email The email of an (existing) user
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
-delete_index_user <- function(index, email, credentials=NULL) {
+delete_index_user <- function(index, email, credentials = NULL) {
   invisible(do_delete(credentials, c("index", index, "users", email)))
 }
 
@@ -105,9 +106,9 @@ delete_index_user <- function(index, email, credentials=NULL) {
 #' @param role The role of the user (METAREADER, READER, WRITER, ADMIN)
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
-modify_index_user <- function(index, email, role, credentials=NULL) {
-  body = list(role=role)
-  invisible(do_put(credentials, c("index", index, "users", email), body=body))
+modify_index_user <- function(index, email, role, credentials = NULL) {
+  body <- list(role = toupper(role))
+  invisible(do_put(credentials, c("index", index, "users", email), body = body))
 }
 
 
@@ -116,7 +117,7 @@ modify_index_user <- function(index, email, role, credentials=NULL) {
 #' @param index The index to refresh
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
-refresh_index <- function(index, credentials=NULL) {
+refresh_index <- function(index, credentials = NULL) {
   invisible(do_get(credentials, c("index", index, "refresh")))
 }
 
@@ -126,8 +127,8 @@ refresh_index <- function(index, credentials=NULL) {
 #' @param fields A list with fields and data types, e.g. list(author="keyword")
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
-set_fields <- function(index, fields, credentials=NULL) {
-  invisible(do_post(credentials, c("index", index, "fields"), body=fields))
+set_fields <- function(index, fields, credentials = NULL) {
+  invisible(do_post(credentials, c("index", index, "fields"), body = fields))
 }
 
 #' Get fields
@@ -135,7 +136,7 @@ set_fields <- function(index, fields, credentials=NULL) {
 #' @param index The index to get fields for
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
-get_fields <- function(index, credentials=NULL) {
+get_fields <- function(index, credentials = NULL) {
   do_get(credentials, c("index", index, "fields")) |>
-    purrr::map_df(function(t) tibble::tibble(name=t$name, type=t$type))
+    purrr::map_df(function(t) tibble::tibble(name = t$name, type = t$type))
 }

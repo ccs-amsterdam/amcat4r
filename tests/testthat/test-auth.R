@@ -18,7 +18,7 @@ test_that("No Browser found", {
   tmp <- getOption("browser")
   options("browser" = "")
   expect_error(amcat_login("https://middlecat.up.railway.app/api/demo_resource", force_refresh = TRUE),
-               "Authentication needs access to a browser.")
+               "Authentication needs access")
   options("browser" = tmp)
 })
 

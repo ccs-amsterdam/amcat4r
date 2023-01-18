@@ -4,14 +4,22 @@
 \alias{modify_user}
 \title{Modify an existing user}
 \usage{
-modify_user(email, new_password, credentials = NULL)
+modify_user(
+  email,
+  global_role = "writer",
+  new_password = NULL,
+  credentials = NULL
+)
 }
 \arguments{
-\item{email}{email of the user to modify}
+\item{email}{email of the user to modify.}
 
-\item{new_password}{new password for the user}
+\item{global_role}{global role of the user ("writer" or "admin").}
 
-\item{credentials}{The credentials to use. If not given, uses last login information}
+\item{new_password}{new password for the user.}
+
+\item{credentials}{The credentials to use. If not given, uses cached login
+information.}
 }
 \description{
 Modify an existing user

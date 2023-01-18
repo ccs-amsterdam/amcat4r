@@ -1,0 +1,30 @@
+amcat_login("http://localhost/amcat", username = "admin", password = "supergeheim", force_refresh = TRUE, cache = 2L)
+
+test_that("query", {
+  skip_if(Sys.getenv("amcat_offline"))
+
+  expect_equal(
+    dim(query_documents("state_of_the_union", queries = NULL, fields = NULL)),
+    c(232, 7)
+  )
+
+  expect_equal(
+    colnames(query_aggregate("state_of_the_union",
+                             axes = list(list(field="party", list(field="date", interval="year"))),
+                             queries = c("war", "peace"),
+                             filters = list(party = c("Democratic", "Republican"),
+                                            date = list(gte = "1900-01-01")))),
+    c("party", "n")
+  )
+
+  set_fields("state_of_the_union", list(test = "tag"))
+  update_tags(
+    index = "state_of_the_union",
+    action = "add",
+    field = "test",
+    tag = "test",
+    filters = list(party = "Republican",
+                   date = list(gte = "2000-01-01"))
+  )
+
+})

@@ -26,3 +26,12 @@ query_aggregate(
 \description{
 Conduct a query and return the resulting documents
 }
+\examples{
+
+query_aggregate("state_of_the_union",
+                axes = list(list(field="party", list(field="date", interval="year"))),
+                queries = c("war", "peace"),
+                filters = list(party = c("Democratic", "Republican"),
+                               date = list(gte = "1900-01-01")))
+
+}

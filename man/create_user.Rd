@@ -6,22 +6,23 @@
 \usage{
 create_user(
   email,
-  password,
-  global_role = NULL,
+  password = NULL,
+  global_role = "writer",
   index_access = NULL,
   credentials = NULL
 )
 }
 \arguments{
-\item{email}{email of the user to modify}
+\item{email}{email of the user to add.}
 
-\item{password}{new password for the user}
+\item{password}{new password for the user.}
 
-\item{global_role}{global role of the user ("writer" or "admin")}
+\item{global_role}{global role of the user ("writer" or "admin").}
 
-\item{index_access}{index to grant access to for the new user}
+\item{index_access}{index to grant access to for the new user.}
 
-\item{credentials}{The credentials to use. If not given, uses last login information}
+\item{credentials}{The credentials to use. If not given, uses cached login
+information.}
 }
 \description{
 Create a new user

@@ -9,6 +9,7 @@
 #' @param max_pages Stop after getting this many pages. Set to 0 to retrieve all.
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @param merge_tags Character to merge tag fields with, default ';'. Set to NULL to prevent merging.
+#'
 #' @export
 query_documents <- function(
     index, queries=NULL, fields=c("date", "title"), filters=NULL,
@@ -48,6 +49,7 @@ query_documents <- function(
   d
 }
 
+
 #' Conduct a query and return the resulting documents
 #'
 #' @param index The index to query
@@ -55,6 +57,15 @@ query_documents <- function(
 #' @param queries An optional vector of queries to run (implicit OR)
 #' @param filters An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))
 #' @param credentials The credentials to use. If not given, uses last login information
+#'
+#' @examples
+#'
+#' query_aggregate("state_of_the_union",
+#'                 axes = list(list(field="party", list(field="date", interval="year"))),
+#'                 queries = c("war", "peace"),
+#'                 filters = list(party = c("Democratic", "Republican"),
+#'                                date = list(gte = "1900-01-01")))
+#'
 #' @export
 query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials=NULL) {
   #TODO: convert dates into Date? <- could check field types. OTOH, maybe return table in more sensible format?
@@ -64,7 +75,10 @@ query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials
   if ("_query" %in% colnames(d)) d <- dplyr::rename(d, .query = "_query")
   d
 }
+
+
 #' Add or remove tags to/from documents by query or ID
+#'
 #' @param index The index to query
 #' @param field The tag field name
 #' @param tag The tag to add or remove
@@ -73,6 +87,19 @@ query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials
 #' @param filters An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))
 #' @param ids A vector of ids to add/remove tags from
 #' @param credentials The credentials to use. If not given, uses last login information
+#'
+#' @examples
+#'
+#' set_fields("state_of_the_union", list(test = "tag"))
+#' update_tags(
+#'   index = "state_of_the_union",
+#'   action = "add",
+#'   field = "test",
+#'   tag = "test",
+#'   filters = list(party = "Republican",
+#'                  date = list(gte = "2000-01-01"))
+#' )
+#'
 #' @export
 update_tags <- function(index, action, field, tag, ids=NULL, queries=NULL, filters=NULL, credentials=NULL) {
   body = list(field=field, action=action, tag=tag, ids=ids, queries=queries, filters=filters)
