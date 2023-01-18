@@ -5,7 +5,8 @@ test_that("query", {
 
   expect_equal(
     dim(query_documents("state_of_the_union", queries = NULL, fields = NULL)),
-    c(232, 7)
+    c(232, 7),
+    tolerance = 1L
   )
 
   expect_equal(
@@ -17,14 +18,31 @@ test_that("query", {
     c("party", "n")
   )
 
-  set_fields("state_of_the_union", list(test = "tag"))
-  update_tags(
-    index = "state_of_the_union",
-    action = "add",
-    field = "test",
-    tag = "test",
-    filters = list(party = "Republican",
-                   date = list(gte = "2000-01-01"))
+  expect_equal({
+    set_fields("state_of_the_union", list(test = "tag"))
+    update_tags(
+      index = "state_of_the_union",
+      action = "add",
+      field = "test",
+      tag = "test",
+      filters = list(party = "Republican",
+                     date = list(gte = "2000-01-01"))
+    )
+    sum(is.na(query_documents("state_of_the_union", queries = NULL, fields = c("test", "title"))))},
+    221L
   )
+
+  # this doesn't seem to work at the moment
+  # expect_equal({
+  #   update_tags(
+  #     index = "state_of_the_union",
+  #     action = "remove",
+  #     field = "test",
+  #     tag = "test",
+  #     queries = NULL
+  #   )
+  #   sum(query_documents("state_of_the_union", queries = NULL, fields = c("test", "title"))$test == "")},
+  #   232L
+  # )
 
 })

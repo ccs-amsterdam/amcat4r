@@ -101,9 +101,9 @@ query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials
 #' )
 #' }
 #' @export
-update_tags <- function(index, action, field, tag, ids=NULL, queries=NULL, filters=NULL, credentials=NULL) {
-  body = list(field=field, action=action, tag=tag, ids=ids, queries=queries, filters=filters)
-  do_post(credentials, c("index", index, "tags_update"), body=body)
+update_tags <- function(index, action, field, tag, ids = NULL, queries = NULL, filters = NULL, credentials = NULL) {
+  body <- list(field = field, action = action, tag = tag, ids = ids, queries = queries, filters = filters)
+  do_post(credentials, c("index", index, "tags_update"), body = body)
   invisible(TRUE)
 }
 

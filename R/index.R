@@ -54,7 +54,7 @@ upload_documents <- function(index,
     req_fields[length(req_fields)] <- paste("and", req_fields[length(req_fields)])
     stop("The fields ", paste(req_fields, collapse = ", "), " are required and can never be NA")
   }
-  if (".id" %in% colnames(documents)) colnames(documents) <- gsub("_id", ".id", colnames(documents), fixed = TRUE)
+  if (".id" %in% colnames(documents)) colnames(documents) <- gsub(".id", "_id", colnames(documents), fixed = TRUE)
   # chunk uploads
   rows <- seq_len(nrow(documents))
   chunks <- split(rows, ceiling(seq_along(rows) / chunk_size))
@@ -66,6 +66,20 @@ upload_documents <- function(index,
     do_post(credentials, c("index", index, "documents"), body, auto_unbox = FALSE) |>
       invisible()
   }
+}
+
+#' Delete documents from index
+#'
+#' @param index The index name in which documents should be deleted.
+#' @param docid the .ids of the documents that should be deleted.
+#' @param credentials The credentials to use. If not given, uses last login
+#'   information.
+#'
+#' @export
+delete_documents <- function(index,
+                             docid,
+                             credentials = NULL) {
+  invisible(lapply(docid, function(id) do_delete(credentials, c("index", index, "documents", id))))
 }
 
 #' List index users
