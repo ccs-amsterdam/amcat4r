@@ -36,7 +36,7 @@ update_tags(
 Add or remove tags to/from documents by query or ID
 }
 \examples{
-
+\dontrun{
 set_fields("state_of_the_union", list(test = "tag"))
 update_tags(
   index = "state_of_the_union",
@@ -46,5 +46,5 @@ update_tags(
   filters = list(party = "Republican",
                  date = list(gte = "2000-01-01"))
 )
-
+}
 }

@@ -59,13 +59,13 @@ query_documents <- function(
 #' @param credentials The credentials to use. If not given, uses last login information
 #'
 #' @examples
-#'
+#' \dontrun{
 #' query_aggregate("state_of_the_union",
 #'                 axes = list(list(field="party", list(field="date", interval="year"))),
 #'                 queries = c("war", "peace"),
 #'                 filters = list(party = c("Democratic", "Republican"),
 #'                                date = list(gte = "1900-01-01")))
-#'
+#' }
 #' @export
 query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials=NULL) {
   #TODO: convert dates into Date? <- could check field types. OTOH, maybe return table in more sensible format?
@@ -89,7 +89,7 @@ query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials
 #' @param credentials The credentials to use. If not given, uses last login information
 #'
 #' @examples
-#'
+#' \dontrun{
 #' set_fields("state_of_the_union", list(test = "tag"))
 #' update_tags(
 #'   index = "state_of_the_union",
@@ -99,7 +99,7 @@ query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials
 #'   filters = list(party = "Republican",
 #'                  date = list(gte = "2000-01-01"))
 #' )
-#'
+#' }
 #' @export
 update_tags <- function(index, action, field, tag, ids=NULL, queries=NULL, filters=NULL, credentials=NULL) {
   body = list(field=field, action=action, tag=tag, ids=ids, queries=queries, filters=filters)
