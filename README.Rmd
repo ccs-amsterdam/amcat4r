@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/ccs-amsterdam/amcat4r/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ccs-amsterdam/amcat4r/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/ccs-amsterdam/amcat4r/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ccs-amsterdam/amcat4r?branch=main)
 <!-- badges: end -->
 
 The goal of amcat4r is to provide easy access to [`amcat4`](https://github.com/ccs-amsterdam/amcat4) from R.

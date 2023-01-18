@@ -23,10 +23,11 @@ Imports:
     tibble,
     utils
 Suggests:
+    covr,
     dockr,
     rstudioapi,
     testthat
-Remotes:  
+Remotes: 
     JBGruber/dockr
 License: MIT + file LICENSE
 Encoding: UTF-8
