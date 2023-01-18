@@ -28,6 +28,7 @@ test_that("query", {
       filters = list(party = "Republican",
                      date = list(gte = "2000-01-01"))
     )
+    Sys.sleep(2) # seems to take a second to work
     sum(is.na(query_documents("state_of_the_union", queries = NULL, fields = c("test", "title"))))},
     221L
   )
