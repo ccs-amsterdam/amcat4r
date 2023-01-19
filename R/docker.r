@@ -29,9 +29,14 @@ run_amcat_docker <- function(compose = NULL, force_install = FALSE) {
 
 #' Stop docker containers with AmCAT modules
 #'
+#' @param compose Path to a Docker Compose file. Uses
+#'   https://github.com/JBGruber/amcat4docker/blob/main/docker-compose.yml by
+#'   default.
 #' @param filters Names of containers or named values for other filters. (See
 #'   [https://docs.docker.com/engine/api/v1.41/#tag/Container/operation/ContainerList])
 #'
+#' @details Stops either the containers defined in a compose file or the
+#'   filters. If filters is set, compose is ignored.
 #'
 #' @export
 #'
@@ -46,7 +51,14 @@ run_amcat_docker <- function(compose = NULL, force_install = FALSE) {
 #' # stop all containers
 #' stop_amcat_docker(filters = "")
 #' }
-stop_amcat_docker <- function(filters = c("elastic", "amcat")) {
+stop_amcat_docker <- function(compose = NULL, filters = NULL) {
+
+  if (is.null(compose) & is.null(filters)) {
+    compose <- dockr::parse_yml(url(
+      "https://raw.githubusercontent.com/JBGruber/amcat4docker/main/docker-compose.yml"
+    ))
+    filters <- names(compose$services)
+  }
 
   if (is.null(names(filters)))  {
     filters <- list(filters)
