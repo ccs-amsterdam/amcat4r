@@ -3,8 +3,6 @@
 #' @param server URL of the AmCAT instance
 #' @param token_refresh Whether to enable refresh token rotation (see details).
 #' @param force_refresh Overwrite existing cached authentications.
-#' @param username,password log in with username and password directly (not
-#'   supported for all users).
 #' @param cache select where tokens should be cached to suppress the user menu.
 #'   1 means to store on disk, 2 means to store only in memory.
 #'
@@ -34,8 +32,6 @@
 amcat_login <- function(server,
                         token_refresh = FALSE,
                         force_refresh = FALSE,
-                        username = NULL,
-                        password = NULL,
                         cache = NULL) {
 
   if (force_refresh) {
@@ -44,42 +40,29 @@ amcat_login <- function(server,
     tokens <- amcat_get_token(server, warn = FALSE)
   }
 
-  if (is.null(tokens)) {
-    if (is.null(username)) {
-      tokens <- get_middlecat_token(server = server, token_refresh = token_refresh)
-    } else {
-      tokens <- get_password_token(server = server, username = username, password = password)
-    }
+  config <- get_config(server)
+
+  if (config[["authorization"]] == "no_auth") {
+    cli::cli_inform(c("v" = "Authentication at {server} successful!"))
+    tokens$token_type <- "no_auth"
+    # use "httr2_token" class for a unified printing
+    class(tokens) <- c("amcat4_token", "httr2_token")
+  } else if (is.null(tokens)) {
+    tokens <- get_middlecat_token(server = server,
+                                  token_refresh = token_refresh,
+                                  middlecat = config[["middlecat_url"]])
   }
 
-  attr(tokens, "cache_choice") <- cache
+  tokens$authorization <- config[["authorization"]]
+  if (is.null(attr(tokens, "cache_choice"))) attr(tokens, "cache_choice") <- cache
   tokens <- tokens_cache(tokens, server)
   invisible(tokens)
 }
 
-# internal function to get a token from amcat directly using password auth
-get_password_token <- function(server, username, password) {
-  if (is.null(password)) {
-    if (rstudioapi::isAvailable()) {
-      password = rstudioapi::askForPassword(paste("Password for", server))
-    } else {
-      stop("password is missing")
-    }
-  }
-  cli::cli_progress_bar()
-  cli::cli_progress_step("Requesting a token at {server} for username {username} using a password")
-  r = httr::POST(paste0(server, "/auth/token"),
-                 body=list(username=username, password=password))
-
-  httr::stop_for_status(r)
-  cli::cli_progress_step("Authentication at {server} successful")
-  cli::cli_progress_done()
-  httr::content(r)
-}
-
 # internal function to get a token from middlecat
-get_middlecat_token <- function(server, token_refresh=FALSE) {
-  middlecat <- get_config(server)[["middlecat_url"]]
+get_middlecat_token <- function(server,
+                                token_refresh = FALSE,
+                                middlecat) {
 
   if (methods::is(getOption("browser"), "character")) {
     if (getOption("browser") == "") {
@@ -105,7 +88,7 @@ get_middlecat_token <- function(server, token_refresh=FALSE) {
   )
 
   class(tokens) <- c("amcat4_token", class(tokens))
-  cli::cli_progress_step("Authentication at {server} successful")
+  cli::cli_progress_step("Authentication at {server} successful!")
   cli::cli_progress_done()
   tokens
 }
@@ -190,7 +173,7 @@ amcat_token_refresh <- function(tokens, server) {
 # internal function to retrieve config from an amcat server
 get_config <- function(server) {
   httr2::request(server) |>
-    httr2::req_url_path_append("middlecat") |>
+    httr2::req_url_path_append("config") |>
     httr2::req_perform() |>
     httr2::resp_body_json()
 }

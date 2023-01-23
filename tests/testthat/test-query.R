@@ -1,4 +1,4 @@
-amcat_login("http://localhost/amcat", username = "admin", password = "supergeheim", force_refresh = TRUE, cache = 2L)
+amcat_login("http://localhost/amcat", cache = 2L)
 
 test_that("query", {
   skip_if(Sys.getenv("amcat_offline"))

@@ -5,13 +5,11 @@ pkg.env <- new.env()
 get_credentials = function(credentials=NULL) {
 
   if (is.null(credentials)) {
-    if (!is.null(pkg.env$current)) {
-      credentials = pkg.env$current
-    } else if (!is.null(pkg.env$current_server)) {
+    if (!is.null(pkg.env$current_server)) {
       credentials = amcat_get_token(pkg.env$current_server)
       credentials$host <- pkg.env$current_server
     } else {
-      stop("Please login() first")
+      stop("Please use amcat_login() first")
     }
   }
   credentials
@@ -26,11 +24,20 @@ request <- function(credentials, url, request_function=httr::GET, error_on_404=T
   token <- credentials$access_token
   if (is.null(token)) token <- credentials$token
 
+  if (credentials$authorization != "no_auth") {
+    config <- httr::add_headers(Authorization = paste("Bearer", token))
+  } else {
+    config <- list()
+  }
+
   r = request_function(
     url=url,
-    config=httr::add_headers(Authorization = paste("Bearer", token)),
-    ...)
+    config=config,
+    ...
+  )
   if (httr::status_code(r) == 404 & !error_on_404) return(NULL)
+  if (httr::status_code(r) >= 401) message(httr::content(r, as="parsed"),
+                                           " (hint: see ?amcat_login on how to get a fresh token)")
   if (httr::status_code(r) >= 300) message(httr::content(r, as="parsed"))
   httr::stop_for_status(r)
   httr::content(r, as="parsed")
