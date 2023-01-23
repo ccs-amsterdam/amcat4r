@@ -4,14 +4,7 @@
 \alias{amcat_login}
 \title{Authenticate to an AmCAT instance}
 \usage{
-amcat_login(
-  server,
-  token_refresh = FALSE,
-  force_refresh = FALSE,
-  username = NULL,
-  password = NULL,
-  cache = NULL
-)
+amcat_login(server, token_refresh = FALSE, force_refresh = FALSE, cache = NULL)
 }
 \arguments{
 \item{server}{URL of the AmCAT instance}
@@ -19,9 +12,6 @@ amcat_login(
 \item{token_refresh}{Whether to enable refresh token rotation (see details).}
 
 \item{force_refresh}{Overwrite existing cached authentications.}
-
-\item{username, password}{log in with username and password directly (not
-supported for all users).}
 
 \item{cache}{select where tokens should be cached to suppress the user menu.
 1 means to store on disk, 2 means to store only in memory.}

@@ -4,14 +4,22 @@
 \alias{stop_amcat_docker}
 \title{Stop docker containers with AmCAT modules}
 \usage{
-stop_amcat_docker(filters = c("elastic", "amcat"))
+stop_amcat_docker(compose = NULL, filters = NULL)
 }
 \arguments{
+\item{compose}{Path to a Docker Compose file. Uses
+https://github.com/JBGruber/amcat4docker/blob/main/docker-compose.yml by
+default.}
+
 \item{filters}{Names of containers or named values for other filters. (See
 [https://docs.docker.com/engine/api/v1.41/#tag/Container/operation/ContainerList])}
 }
 \description{
 Stop docker containers with AmCAT modules
+}
+\details{
+Stops either the containers defined in a compose file or the
+  filters. If filters is set, compose is ignored.
 }
 \examples{
 \dontrun{

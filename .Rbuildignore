@@ -3,4 +3,5 @@
 ^\.github$
 ^README\.Rmd$
 ^docker-compose2$
+^docker-compose\.yml$
 ^codecov\.yml$

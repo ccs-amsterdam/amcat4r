@@ -43,8 +43,6 @@ jobs:
 
       - name: setup amcat4 container
         run: |
-          docker exec -t amcat4 amcat4 add-admin admin
-          docker exec -t amcat4 amcat4 create-env -a admin -p supergeheim
           docker exec -t amcat4 amcat4 create-test-index
 
       - uses: r-lib/actions/setup-pandoc@v2
