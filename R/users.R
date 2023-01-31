@@ -5,7 +5,7 @@
 #'
 #' @export
 list_users <- function(credentials=NULL) {
-  do_get(credentials, c("users")) |> dplyr::bind_rows()
+  request(credentials, c("users")) |> dplyr::bind_rows()
 }
 
 
@@ -26,7 +26,7 @@ modify_user <- function(email,
     password = new_password,
     global_role = global_role
   )
-  invisible(do_put(credentials, c("users", email), body))
+  invisible(request(credentials, c("users", email), "PUT", body))
 }
 
 
@@ -49,7 +49,7 @@ create_user <- function(email,
     email = email, password = password, global_role = global_role,
     index_access = index_access
   )
-  invisible(do_post(credentials, c("users", ""), body))
+  invisible(request(credentials, "users/", "POST", body))
 }
 
 #' Delete new user
@@ -61,6 +61,6 @@ create_user <- function(email,
 #' @export
 delete_user <- function(email,
                         credentials = NULL) {
-  invisible(do_delete(credentials, c("users", email)))
+  invisible(request(credentials, c("users", email), "DELETE"))
 }
 

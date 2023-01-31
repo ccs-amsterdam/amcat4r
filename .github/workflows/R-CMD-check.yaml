@@ -39,6 +39,7 @@ jobs:
       - name: start amcat docker containers
         run: |
           ./docker-compose2 up -d --pull="missing" --quiet-pull
+          rm docker-compose.yml docker-compose2
           sleep 30
 
       - name: setup amcat4 container

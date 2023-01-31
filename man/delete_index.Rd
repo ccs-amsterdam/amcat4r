@@ -14,3 +14,9 @@ delete_index(index, credentials = NULL)
 \description{
 Delete an index
 }
+\examples{
+\dontrun{
+delete_index("test_index")
+}
+
+}

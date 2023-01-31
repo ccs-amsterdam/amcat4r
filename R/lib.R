@@ -17,59 +17,71 @@ get_credentials = function(credentials=NULL) {
 
 #' Helper function to execute a request to this API
 #' @noRd
-request <- function(credentials, url, request_function=httr::GET, error_on_404=TRUE, ...) {
-  credentials = get_credentials(credentials)
-  url = paste(c(credentials$host, trimws(url, whitespace="/")), collapse="/")
+request <- function(credentials,
+                    url,
+                    method = "GET",
+                    body = NULL,
+                    error_on_404 = TRUE,
+                    ...) {
 
-  token <- credentials$access_token
-  if (is.null(token)) token <- credentials$token
+  # current httr2 version has a bug in req_url_path that can't handle objects of
+  # length != 1, already fixed on gh
+  if (utils::packageVersion("httr2") <= "0.2.2") url <- make_path(url)
+
+  credentials <- get_credentials(credentials)
+
+  req <- httr2::request(credentials$host) |>
+    httr2::req_url_path_append(url) |>
+    httr2::req_method(method) |>
+    httr2::req_error(
+      is_error = function(resp) ifelse(httr2::resp_status(resp) == 404L,
+                                       error_on_404 ,
+                                       httr2::resp_status(resp) >= 300),
+      body = error_body
+    )
+
+  if (!is.null(body)) {
+    req <- req |>
+      httr2::req_body_json(body)
+  }
 
   if (credentials$authorization != "no_auth") {
-    config <- httr::add_headers(Authorization = paste("Bearer", token))
+    req <- req |>
+      httr2::req_auth_bearer_token(credentials$access_token)
+  }
+
+  resp <- httr2::req_perform(req)
+  if (length(resp[["body"]]) > 0) {
+    return(httr2::resp_body_json(resp))
   } else {
-    config <- list()
+    invisible(NULL)
+  }
+}
+
+
+#' Custom error message for requests
+#' @noRd
+make_path <- function(...) {
+  path <- paste(c(...), collapse = "/")
+  # Ensure we don't add duplicate /s
+  if (path != "" && !grepl("^/", path)) {
+    path <- paste0("/", path)
   }
 
-  r = request_function(
-    url=url,
-    config=config,
-    ...
-  )
-  if (httr::status_code(r) == 404 & !error_on_404) return(NULL)
-  if (httr::status_code(r) >= 401) message(httr::content(r, as="parsed"),
-                                           " (hint: see ?amcat_login on how to get a fresh token)")
-  if (httr::status_code(r) >= 300) message(httr::content(r, as="parsed"))
-  httr::stop_for_status(r)
-  httr::content(r, as="parsed")
+  path
 }
 
-#' Execute a POST request to this AmCAT API, returning the json result
+
+#' Custom error message for requests
 #' @noRd
-do_post <- function(credentials, url, body, encode="json-auto", auto_unbox=TRUE, ...) {
-  if (encode == "json-auto") {
-    body = jsonlite::toJSON(body, null='null', auto_unbox=auto_unbox)
-    encode = "raw"
+error_body <- function(resp) {
+  if (httr2::resp_content_type(resp) == "json") {
+    error <- httr2::resp_body_json(resp)$error
+  } else {
+    error <- glue::glue("HTTP {httr2::resp_status(resp)} {httr2::resp_status_desc(resp)}."                        )
   }
-  request(credentials, url, request_function=httr::POST, body=body, encode=encode, ...)
-}
 
-#' Execute a PUT request to this AmCAT API, returning the json result
-#' @noRd
-do_put <- function(credentials, url, body, encode="json-auto", auto_unbox=TRUE, ...) {
-  if (encode == "json-auto") {
-    body = jsonlite::toJSON(body, null='null', auto_unbox=auto_unbox)
-  }
-  request(credentials, url, request_function=httr::PUT, body=body, encode=encode, ...)
-}
-
-#' Execute a GET request to this AmCAT API, returning the json result
-#' @noRd
-do_get <- function(credentials, url, ...) {
-  request(credentials, url, request_function=httr::GET, ...)
-}
-
-#' Execute a DELETE request to this AmCAT API, returning the json result
-#' @noRd
-do_delete <- function(credentials, url, ...) {
-  request(credentials, url, request_function=httr::DELETE, ...)
+  if (httr2::resp_status(resp) == 401)
+    error <- glue::glue(error, " (hint: see ?amcat_login on how to get a fresh token)")
+  cli::cli_abort(error)
 }

@@ -13,8 +13,14 @@ create_index(index, guest_role = NULL, credentials = NULL)
 "reader" and "metareader".}
 
 \item{credentials}{The credentials to use. If not given, uses last login
-information}
+information.}
 }
 \description{
 Create an index
+}
+\examples{
+\dontrun{
+create_index("test_index")
+}
+
 }
