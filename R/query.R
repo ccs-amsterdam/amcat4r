@@ -28,7 +28,6 @@ query_documents <- function(index,
     row
   }
 
-  # TODO: convert dates into Date? <- could check field types. OTOH, maybe return table in more sensible format?
   body <- list(
     queries = queries, fields = fields, filters = filters,
     scroll = scroll, per_page = per_page
@@ -48,10 +47,7 @@ query_documents <- function(index,
   }
   d <- dplyr::bind_rows(results)
   if ("_id" %in% colnames(d)) d <- dplyr::rename(d, .id = "_id")
-  for (date_col in intersect(colnames(d), types$name[types$type == "date"])) {
-    d[[date_col]] <- lubridate::as_datetime(d[[date_col]])
-  }
-  d
+  convert_datecols(d, index)
 }
 
 
@@ -73,12 +69,11 @@ query_documents <- function(index,
 #' }
 #' @export
 query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials=NULL) {
-  #TODO: convert dates into Date? <- could check field types. OTOH, maybe return table in more sensible format?
   body = list(axes=axes, queries=queries, filters=filters)
   r = request(credentials, c("index", index, "aggregate"), method = "POST", body=body)
   d = dplyr::bind_rows(r$data)
   if ("_query" %in% colnames(d)) d <- dplyr::rename(d, .query = "_query")
-  d
+  convert_datecols(d, index)
 }
 
 

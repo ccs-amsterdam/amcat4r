@@ -59,7 +59,7 @@ request <- function(credentials,
 }
 
 
-#' Custom error message for requests
+#' Hanlde path for httr2 0.2.2 and below
 #' @noRd
 make_path <- function(...) {
   path <- paste(c(...), collapse = "/")
@@ -89,5 +89,14 @@ amcat_error_body <- function(resp) {
   if (httr2::resp_status(resp) == 401)
     error <- glue::glue(error, " (hint: see ?amcat_login on how to get a fresh token)")
   return(error)
+}
+
+
+#' Helper function to convert date columns in date format
+#' @noRd
+convert_datecols <- function(df, index) {
+  cnv <- dplyr::filter(get_fields(index), type == "date")$name
+  if (cnv %in% colnames(df)) df <- dplyr::mutate(df, dplyr::across({{cnv}}, strptime, "%Y-%m-%dT%H:%M:%S"))
+  df
 }
 
