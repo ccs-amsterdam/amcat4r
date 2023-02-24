@@ -33,17 +33,18 @@ test_that("query", {
     221L
   )
 
-  # this doesn't seem to work at the moment
-  # expect_equal({
-  #   update_tags(
-  #     index = "state_of_the_union",
-  #     action = "remove",
-  #     field = "test",
-  #     tag = "test",
-  #     queries = NULL
-  #   )
-  #   sum(query_documents("state_of_the_union", queries = NULL, fields = c("test", "title"))$test == "")},
-  #   232L
-  # )
+  expect_equal({
+    update_tags(
+      index = "state_of_the_union",
+      action = "remove",
+      field = "test",
+      tag = "test",
+      filters = list(party = "Republican",
+                     date = list(gte = "2008-01-01"))
+    )
+    Sys.sleep(2) # seems to take a second to work
+    sum(is.na(query_documents("state_of_the_union", queries = NULL, fields = c("test", "title"))))},
+    224L
+  )
 
 })
