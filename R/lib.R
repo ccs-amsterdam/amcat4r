@@ -36,8 +36,8 @@ request <- function(credentials,
     httr2::req_error(
       is_error = function(resp) ifelse(httr2::resp_status(resp) == 404L,
                                        error_on_404 ,
-                                       httr2::resp_status(resp) >= 300),
-      body = error_body
+                                       httr2::resp_status(resp) >= 400),
+      body = amcat_error_body
     )
 
   if (!is.null(body)) {
@@ -74,14 +74,20 @@ make_path <- function(...) {
 
 #' Custom error message for requests
 #' @noRd
-error_body <- function(resp) {
-  if (httr2::resp_content_type(resp) == "json") {
-    error <- httr2::resp_body_json(resp)$error
+amcat_error_body <- function(resp) {
+  resp <<- resp
+  if (grepl("json", httr2::resp_content_type(resp), fixed = TRUE)) {
+    ebody <- httr2::resp_body_json(resp)
+    error <- c(
+      ebody$error,
+      glue::glue('{ebody[["detail"]][[1]][["msg"]]}: {toString(ebody[["detail"]][[1]][["loc"]])}')
+    )
   } else {
-    error <- glue::glue("HTTP {httr2::resp_status(resp)} {httr2::resp_status_desc(resp)}."                        )
+    error <- NULL
   }
 
   if (httr2::resp_status(resp) == 401)
     error <- glue::glue(error, " (hint: see ?amcat_login on how to get a fresh token)")
-  cli::cli_abort(error)
+  return(error)
 }
+
