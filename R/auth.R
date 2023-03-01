@@ -172,10 +172,12 @@ amcat_token_refresh <- function(tokens, server) {
 
 # internal function to retrieve config from an amcat server
 get_config <- function(server) {
-  httr2::request(server) |>
+  out <- httr2::request(server) |>
     httr2::req_url_path_append("config") |>
     httr2::req_perform() |>
     httr2::resp_body_json()
+  for (w in out$warnings) if (!is.null(w)) cli::cli_alert_warning(w)
+  return(out)
 }
 
 # internal function to retrieve token
