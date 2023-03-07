@@ -75,12 +75,17 @@ make_path <- function(...) {
 #' Custom error message for requests
 #' @noRd
 amcat_error_body <- function(resp) {
-  resp <<- resp
+  # resp <<- resp
   if (grepl("json", httr2::resp_content_type(resp), fixed = TRUE)) {
     ebody <- httr2::resp_body_json(resp)
+    # TODO: find a cleaner way to parse this
+    msg <- try(ebody[["detail"]][[1]][["msg"]])
+    if (methods::is(msg, "try-error")) msg <- NULL
+    detail <- try(toString(ebody[["detail"]][[1]][["loc"]]))
+    if (methods::is(detail, "try-error")) detail <- toString(ebody[["detail"]])
     error <- c(
       ebody$error,
-      glue::glue('{ebody[["detail"]][[1]][["msg"]]}: {toString(ebody[["detail"]][[1]][["loc"]])}')
+      paste0(msg, detail, .sep = ": ")
     )
   } else {
     error <- NULL
