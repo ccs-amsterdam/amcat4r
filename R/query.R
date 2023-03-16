@@ -35,8 +35,10 @@ query_documents <- function(index,
   # TODO: I think there's a better way to create a result set from pages, right Kasper?
   results <- list()
   while (TRUE) {
-    r <- request(credentials, c("index", index, "query"), method = "POST", body = body, error_on_404 = FALSE)
-    if (isTRUE(r$detail == "Not Found")) break
+    resp <- request_response(credentials, c("index", index, "query"),
+                             method = "POST", body = body, error_on_404 = FALSE)
+    if (resp$status_code == 404) break
+    r = httr2::resp_body_json(resp)
     new_results <- r$results
     if (!is.null(merge_tags)) new_results <- purrr::map(new_results, convert)
     new_results <- dplyr::bind_rows(new_results)

@@ -17,7 +17,7 @@ get_credentials = function(credentials=NULL) {
 
 #' Helper function to execute a request to this API
 #' @noRd
-request <- function(credentials,
+request_response <- function(credentials,
                     url,
                     method = "GET",
                     body = NULL,
@@ -50,14 +50,19 @@ request <- function(credentials,
       httr2::req_auth_bearer_token(credentials$access_token)
   }
 
-  resp <- httr2::req_perform(req)
+  httr2::req_perform(req)
+}
+
+#' Make a request and return the body
+#' @noRd
+request <- function(...) {
+  resp = request_response(...)
   if (length(resp[["body"]]) > 0) {
     return(httr2::resp_body_json(resp))
   } else {
     invisible(NULL)
   }
 }
-
 
 #' Hanlde path for httr2 0.2.2 and below
 #' @noRd
@@ -100,8 +105,10 @@ amcat_error_body <- function(resp) {
 #' Helper function to convert date columns in date format
 #' @noRd
 convert_datecols <- function(df, index) {
-  cnv <- dplyr::filter(get_fields(index), type == "date")$name
-  if (cnv %in% colnames(df)) df <- dplyr::mutate(df, dplyr::across({{cnv}}, strptime, "%Y-%m-%dT%H:%M:%S"))
+  datecols <- dplyr::filter(get_fields(index), type == "date")$name
+
+  for (date_col in intersect(colnames(df), datecols))
+    df[[date_col]] <- strptime(df[[date_col]], format =  "%Y-%m-%dT%H:%M:%S")
   df
 }
 
