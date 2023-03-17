@@ -20,7 +20,8 @@ Imports:
     rappdirs,
     rlang,
     tibble,
-    utils
+    utils,
+    pillar
 Suggests:
     covr,
     dockr,

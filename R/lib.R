@@ -112,3 +112,18 @@ convert_datecols <- function(df, index) {
   df
 }
 
+
+#' Truncate id columns when printing
+#' @export
+#' @importFrom pillar pillar_shaft
+#' @method pillar_shaft id_col
+pillar_shaft.id_col <- function(x, ...) {
+  x <- ifelse(
+    nchar(x) > 7,
+    paste0(substr(x, 1, 3), '\u2026', substr(x, nchar(x)-2, nchar(x))),
+    x
+  )
+  pillar::pillar_shaft(x)
+}
+
+
