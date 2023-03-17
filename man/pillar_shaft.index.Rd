@@ -4,7 +4,7 @@
 \alias{pillar_shaft.index}
 \title{Truncate id columns when printing}
 \usage{
-\method{pillar_shaft}{index}(x, ...)
+\method{pillar::pillar_shaft}{index}(x, ...)
 }
 \description{
 Truncate id columns when printing
