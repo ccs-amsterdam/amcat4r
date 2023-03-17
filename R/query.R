@@ -50,7 +50,7 @@ query_documents <- function(index,
   d <- dplyr::bind_rows(results)
   if ("_id" %in% colnames(d)) {
     d <- dplyr::rename(d, .id = "_id")
-    class(d$.id) <- c("index", class(d$.id))
+    class(d$.id) <- c("id_col", class(d$.id))
   }
   convert_datecols(d, index)
 }
