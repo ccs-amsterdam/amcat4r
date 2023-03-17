@@ -48,10 +48,7 @@ query_documents <- function(index,
     body$scroll_id <- r$meta$scroll_id
   }
   d <- dplyr::bind_rows(results)
-  if ("_id" %in% colnames(d)) {
-    d <- dplyr::rename(d, .id = "_id")
-    class(d$.id) <- c("index", class(d$.id))
-  }
+  if ("_id" %in% colnames(d)) d <- dplyr::rename(d, .id = "_id")
   convert_datecols(d, index)
 }
 

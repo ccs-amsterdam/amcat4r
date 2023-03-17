@@ -112,17 +112,3 @@ convert_datecols <- function(df, index) {
   df
 }
 
-
-#' Truncate id columns when printing
-#' @export
-#' @method pillar_shaft index
-pillar_shaft.index <- function(x, ...) {
-  x <- ifelse(
-    nchar(x) > 5,
-    paste0(substr(x, 0, 3), '…', substr(x, nchar(x)-2, nchar(x))),
-    x
-  )
-  pillar::pillar_shaft(x)
-}
-
-
