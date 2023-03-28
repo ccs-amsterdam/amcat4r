@@ -8,6 +8,7 @@ get_credentials = function(credentials=NULL) {
     if (!is.null(pkg.env$current_server)) {
       credentials = amcat_get_token(pkg.env$current_server)
       credentials$host <- pkg.env$current_server
+      credentials$authorization <- pkg.env$authorization
     } else {
       stop("Please use amcat_login() first")
     }

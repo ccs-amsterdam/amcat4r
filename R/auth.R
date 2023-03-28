@@ -112,6 +112,7 @@ tokens_cache <- function(tokens, server) {
   if (cache_choice < 3L) {
 
     pkg.env$current_server <- server
+    pkg.env$authorization <- tokens$authorization
 
     if (cache_choice == 1L) {
 
