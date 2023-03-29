@@ -41,6 +41,9 @@ amcat_login <- function(server,
   }
 
   config <- get_config(server)
+  if (is.null(config$api_version))
+    stop(paste0("The server at ", server, " has API version < 4.0.11, ",
+                "please upgrade the server or use an older client to connect"))
 
   if (config[["authorization"]] == "no_auth") {
     cli::cli_inform(c("v" = "Authentication at {server} successful!"))

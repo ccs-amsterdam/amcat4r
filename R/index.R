@@ -2,8 +2,9 @@
 #'
 #' @param credentials The credentials to use. If not given, uses last login
 #'   information.
+#' @param include_roles Include information on roles
 #'
-#' @return a tibble with index names and role
+#' @return a tibble with index names and guest_role
 #'
 #' @examples \dontrun{
 #' list_indexes()
@@ -42,9 +43,9 @@ delete_index <- function(index, credentials = NULL) {
 #' }
 #'
 #' @export
-create_index <- function(index, guest_role = NULL, credentials = NULL) {
+create_index <- function(index, name=index, description = NULL, guest_role = NULL, credentials = NULL) {
   if (!is.null(guest_role)) guest_role <- tolower(guest_role)
-  body <- list(name = index, guest_role = guest_role)
+  body <- list(id=index, name = name, description = description, guest_role = guest_role)
   invisible(request(credentials, "index/", body = body, "POST"))
 }
 
