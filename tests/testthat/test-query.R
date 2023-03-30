@@ -1,50 +1,84 @@
-amcat_login("http://localhost/amcat", cache = 2L)
+if (!as.logical(Sys.getenv("amcat_offline")))
+  amcat_login("http://localhost/amcat", cache = 2L)
 
 test_that("query", {
-  skip_if(Sys.getenv("amcat_offline"))
-
+  skip_if(as.logical(Sys.getenv("amcat_offline")))
+  create_index("amcat4r-test")
+  set_fields("amcat4r-test", list(keyword = "keyword"))
+  test_doc <- data.frame(
+    .id = 1:10,
+    title = "test",
+    text = "test",
+    date = c("2023-01-01T00:00:00", "2022-01-01T00:00:00"),
+    cats = c("cute", "cute2"),
+    keyword = "test"
+  )
+  upload_documents("amcat4r-test", documents = test_doc)
+  Sys.sleep(2) # seems to take a second to work
   expect_equal(
-    dim(query_documents("state_of_the_union", queries = NULL, fields = NULL)),
-    c(232, 7),
-    tolerance = 1L
+    dim(query_documents("amcat4r-test", queries = NULL, fields = NULL)),
+    c(10, 6)
   )
 
   expect_equal(
-    colnames(query_aggregate("state_of_the_union",
-                             axes = list(list(field="party", list(field="date", interval="year"))),
-                             queries = c("war", "peace"),
-                             filters = list(party = c("Democratic", "Republican"),
-                                            date = list(gte = "1900-01-01")))),
-    c("party", "n")
+    colnames(
+      query_aggregate("amcat4r-test",
+                      axes = list(list(field="keyword", list(field="date", interval="day"))),
+                      queries = "test")
+    ),
+    c("keyword", "n")
+  )
+
+  expect_equal(
+      query_aggregate("amcat4r-test",
+                      axes = list(list(field="keyword", list(field="date", interval="day"))),
+                      queries = "test",
+                      filters = list(cats = "cute",
+                                     date = list(gte = "1900-01-01")))$n,
+    5
+  )
+
+  test_doc$date[1] <- "2022-01-01T00:00:00"
+  upload_documents("amcat4r-test", documents = test_doc)
+  Sys.sleep(2) # seems to take a second to work
+  expect_equal(
+    query_aggregate("amcat4r-test",
+                    axes = list(list(field="keyword", list(field="date", interval="day"))),
+                    queries = "test",
+                    filters = list(cats = "cute",
+                                   date = list(gte = "2023-01-01")))$n,
+    4
   )
 
   expect_equal({
-    set_fields("state_of_the_union", list(test = "tag"))
+    set_fields("amcat4r-test", list(test = "tag"))
     update_tags(
-      index = "state_of_the_union",
+      index = "amcat4r-test",
       action = "add",
       field = "test",
       tag = "test",
-      filters = list(party = "Republican",
-                     date = list(gte = "2000-01-01"))
+      filters = list(cats = "cute",
+                     date = list(gte = "2023-01-01"))
     )
     Sys.sleep(2) # seems to take a second to work
-    sum(is.na(query_documents("state_of_the_union", queries = NULL, fields = c("test", "title"))))},
-    221L
+    sum(is.na(query_documents("amcat4r-test", queries = NULL, fields = c("test", "title"))))},
+    6L
   )
 
   expect_equal({
     update_tags(
-      index = "state_of_the_union",
+      index = "amcat4r-test",
       action = "remove",
       field = "test",
       tag = "test",
-      filters = list(party = "Republican",
-                     date = list(gte = "2008-01-01"))
+      filters = list(cats = "cute",
+                     date = list(gte = "2023-01-01"))
     )
     Sys.sleep(2) # seems to take a second to work
-    sum(is.na(query_documents("state_of_the_union", queries = NULL, fields = c("test", "title"))))},
-    224L
+    # column test should not be returned as all empty
+    sum(is.na(query_documents("amcat4r-test", queries = NULL, fields = c("test", "title"))))},
+    0L
   )
 
+  delete_index("amcat4r-test")
 })

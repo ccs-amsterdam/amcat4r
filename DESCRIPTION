@@ -26,7 +26,8 @@ Suggests:
     covr,
     dockr,
     rstudioapi,
-    testthat
+    testthat,
+    withr
 Remotes: 
     JBGruber/dockr
 License: MIT + file LICENSE
