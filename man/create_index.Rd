@@ -4,10 +4,22 @@
 \alias{create_index}
 \title{Create an index}
 \usage{
-create_index(index, guest_role = NULL, credentials = NULL)
+create_index(
+  index,
+  name = index,
+  description = NULL,
+  guest_role = NULL,
+  credentials = NULL
+)
 }
 \arguments{
-\item{index}{Name of the index to create}
+\item{index}{short name of the index to create (follows naming conventions of
+Elasticsearch, see details).}
+
+\item{name}{optional more descriptive name of the index to create (all
+characters are allowed here)}
+
+\item{description}{optional description of the index to create}
 
 \item{guest_role}{Role for unauthorized users. Options are "admin", "writer",
 "reader" and "metareader".}
@@ -17,6 +29,18 @@ information.}
 }
 \description{
 Create an index
+}
+\details{
+The short name for the new index (index argument) must meet these
+criteria:
+\itemize{
+\item Lowercase only
+\item Cannot include \verb{\\}, \code{/}, \code{*}, \verb{?}, \verb{"}, \code{<}, \code{>}, \code{|}, \code{:}, \verb{ }(space), \verb{,} (comma), \verb{#}
+\item Cannot start with -, _, +
+\item Cannot be \code{.} or \code{..}
+\item Cannot be longer than 255 character (note that some symbols like emojis take up tw characters)
+\item If names start with ., the index will be hidden and non accesible
+}
 }
 \examples{
 \dontrun{

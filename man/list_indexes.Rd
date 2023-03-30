@@ -11,7 +11,7 @@ list_indexes(credentials = NULL)
 information.}
 }
 \value{
-a tibble with index names and role
+a tibble with index names and guest_role
 }
 \description{
 List the indexes on this server

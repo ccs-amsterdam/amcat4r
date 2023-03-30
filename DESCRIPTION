@@ -13,12 +13,12 @@ Imports:
     glue,
     httr2,
     jsonlite,
-    lubridate,
     methods,
     progress,
     purrr,
     rappdirs,
     rlang,
+    remotes,
     tibble,
     utils,
     pillar

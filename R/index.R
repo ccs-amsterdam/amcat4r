@@ -2,7 +2,6 @@
 #'
 #' @param credentials The credentials to use. If not given, uses last login
 #'   information.
-#' @param include_roles Include information on roles
 #'
 #' @return a tibble with index names and guest_role
 #'
@@ -32,11 +31,26 @@ delete_index <- function(index, credentials = NULL) {
 
 #' Create an index
 #'
-#' @param index Name of the index to create
+#' @param index short name of the index to create (follows naming conventions of
+#'   Elasticsearch, see details).
+#' @param name optional more descriptive name of the index to create (all
+#'   characters are allowed here)
+#' @param description optional description of the index to create
 #' @param guest_role Role for unauthorized users. Options are "admin", "writer",
 #'   "reader" and "metareader".
 #' @param credentials The credentials to use. If not given, uses last login
 #'   information.
+#'
+#' @details The short name for the new index (index argument) must meet these
+#'   criteria:
+#'
+#' - Lowercase only
+#' - Cannot include `\`, `/`, `*`, `?`, `"`, `<`, `>`, `|`, `:`, ` `(space), `,` (comma), `#`
+#' - Cannot start with -, _, +
+#' - Cannot be `.` or `..`
+#' - Cannot be longer than 255 character (note that some symbols like emojis take up tw characters)
+#' - If names start with ., the index will be hidden and non accesible
+#' @md
 #'
 #' @examples \dontrun{
 #' create_index("test_index")

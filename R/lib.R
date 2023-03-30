@@ -106,6 +106,7 @@ amcat_error_body <- function(resp) {
 #' Helper function to convert date columns in date format
 #' @noRd
 convert_datecols <- function(df, index) {
+  type <- NULL
   datecols <- dplyr::filter(get_fields(index), type == "date")$name
 
   for (date_col in intersect(colnames(df), datecols))
@@ -115,6 +116,10 @@ convert_datecols <- function(df, index) {
 
 
 #' Truncate id columns when printing
+#'
+#' @param x id column in a data.frame with amcat4 data.
+#' @inheritParams rlang::args_dots_used
+#'
 #' @export
 #' @importFrom pillar pillar_shaft
 #' @method pillar_shaft id_col
