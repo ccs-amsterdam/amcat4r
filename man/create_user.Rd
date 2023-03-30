@@ -7,7 +7,7 @@
 create_user(
   email,
   password = NULL,
-  global_role = "writer",
+  role = "writer",
   index_access = NULL,
   credentials = NULL
 )
@@ -15,9 +15,8 @@ create_user(
 \arguments{
 \item{email}{email of the user to add.}
 
-\item{password}{new password for the user.}
-
-\item{global_role}{global role of the user ("writer" or "admin").}
+\item{role}{global role of the user ("metareader", "reader", "writer" or
+"admin").}
 
 \item{index_access}{index to grant access to for the new user.}
 
