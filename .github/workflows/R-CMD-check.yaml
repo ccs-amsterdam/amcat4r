@@ -42,10 +42,6 @@ jobs:
           rm docker-compose.yml docker-compose2
           sleep 30
 
-      - name: setup amcat4 container
-        run: |
-          docker exec -t amcat4 amcat4 create-test-index
-
       - uses: r-lib/actions/setup-pandoc@v2
 
       - uses: r-lib/actions/setup-r@v2
