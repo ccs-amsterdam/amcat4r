@@ -14,17 +14,14 @@ list_users <- function(credentials=NULL) {
 #' @param email email of the user to modify.
 #' @param role global role of the user ("metareader", "reader", "writer" or
 #'   "admin").
-#' @param new_password new password for the user.
 #' @param credentials The credentials to use. If not given, uses cached login
 #'   information.
 #'
 #' @export
 modify_user <- function(email,
                         role = "writer",
-                        new_password = NULL,
                         credentials = NULL) {
   body = list(
-    password = new_password,
     role = role
   )
   invisible(request(credentials, c("users", email), "PUT", body))
@@ -42,12 +39,11 @@ modify_user <- function(email,
 #'
 #' @export
 create_user <- function(email,
-                        password = NULL,
                         role = "writer",
                         index_access = NULL,
                         credentials = NULL) {
   body <- list(
-    email = email, password = password, role = role,
+    email = email, role = role,
     index_access = index_access
   )
   invisible(request(credentials, "users/", "POST", body))

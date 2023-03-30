@@ -4,13 +4,7 @@
 \alias{create_user}
 \title{Create a new user}
 \usage{
-create_user(
-  email,
-  password = NULL,
-  role = "writer",
-  index_access = NULL,
-  credentials = NULL
-)
+create_user(email, role = "writer", index_access = NULL, credentials = NULL)
 }
 \arguments{
 \item{email}{email of the user to add.}
