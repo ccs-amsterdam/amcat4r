@@ -81,7 +81,9 @@ make_path <- function(...) {
 #' Custom error message for requests
 #' @noRd
 amcat_error_body <- function(resp) {
-  # resp <<- resp
+
+  pkg.env$resp <- resp
+
   if (grepl("json", httr2::resp_content_type(resp), fixed = TRUE)) {
     ebody <- httr2::resp_body_json(resp)
     # TODO: find a cleaner way to parse this
@@ -99,6 +101,7 @@ amcat_error_body <- function(resp) {
 
   if (httr2::resp_status(resp) == 401)
     error <- glue::glue(error, " (hint: see ?amcat_login on how to get a fresh token)")
+
   return(error)
 }
 
@@ -132,4 +135,31 @@ pillar_shaft.id_col <- function(x, ...) {
   pillar::pillar_shaft(x)
 }
 
+
+#' @title Check if an amcat instance is reachable
+#'
+#' @description Check if a server is reachable by sending a request to its
+#'   config endpoint.
+#'
+#' @param server A character string of the server URL. If missing the server for
+#'   the logged in session is tried.
+#'
+#' @return A logical value indicating if the server is reachable.
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' ping("http://localhost/amcat")
+#' }
+ping <- function(server) {
+  if (missing(server)) server <- pkg.env$current_server
+  tryCatch({
+    httr2::request(server) |>
+      httr2::req_url_path_append("config") |>
+      httr2::req_error(is_error = function(resp) FALSE) |>
+      httr2::req_perform() |>
+      (\(resp) !is.null(httr2::resp_body_json(resp)$resource))()
+  }, error = function(resp) FALSE)
+}
 
