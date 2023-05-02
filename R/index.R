@@ -103,6 +103,30 @@ upload_documents <- function(index,
 }
 
 
+#' Update documents
+#'
+#' @param index The index name to create.
+#' @param id The ID (.id) of the document to update description (if NULL, the
+#'   .id column from document will be used).
+#' @param documents A data frame with columns to update.
+#' @param credentials The credentials to use. If not given, uses last login
+#'   information.
+#' @export
+update_documents <- function(index,
+                             id = NULL,
+                             documents,
+                             credentials = NULL) {
+  if (is.null(id) && ".id" %in% colnames(documents)) id <- documents[[".id"]]
+  if (is.null(id)) stop("id is required either in the id or documents argument")
+  documents$.id <- NULL
+  bodies <- as.list(documents)
+  for (i in seq_along(bodies)) {
+    request(credentials, c("index", index, "documents", id), "PUT", body = bodies[1]) |>
+      invisible()
+  }
+}
+
+
 #' Delete documents from index
 #'
 #' @param index The index name in which documents should be deleted.

@@ -19,11 +19,12 @@ get_credentials = function(credentials=NULL) {
 #' Helper function to execute a request to this API
 #' @noRd
 request_response <- function(credentials,
-                    url,
-                    method = "GET",
-                    body = NULL,
-                    error_on_404 = TRUE,
-                    ...) {
+                             url,
+                             method = "GET",
+                             body = NULL,
+                             error_on_404 = TRUE,
+                             auto_unbox = TRUE,
+                             ...) {
 
   # current httr2 version has a bug in req_url_path that can't handle objects of
   # length != 1, already fixed on gh
@@ -43,7 +44,7 @@ request_response <- function(credentials,
 
   if (!is.null(body)) {
     req <- req |>
-      httr2::req_body_json(body)
+      httr2::req_body_json(body, auto_unbox = auto_unbox)
   }
 
   if (credentials$authorization != "no_auth") {

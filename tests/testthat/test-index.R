@@ -24,6 +24,13 @@ test_that("documents", {
     c(out$title, out$text)
   }, c(test_doc$title, test_doc$text))
 
+  expect_equivalent({
+    update_documents("amcat4r-test", documents = data.frame(.id = "1", title = "test-update"))
+    Sys.sleep(2) # seems to take a second
+    out <- query_documents("amcat4r-test", queries = NULL, fields = NULL)
+    c(out$title, out$text)
+  }, c("test-update", test_doc$text))
+
   expect_equal({
     delete_documents("amcat4r-test", "1")
     Sys.sleep(2) # seems to take a second
