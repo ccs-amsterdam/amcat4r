@@ -4,13 +4,13 @@
 \alias{update_documents}
 \title{Update documents}
 \usage{
-update_documents(index, id = NULL, documents, credentials = NULL)
+update_documents(index, ids = NULL, documents, credentials = NULL)
 }
 \arguments{
 \item{index}{The index name to create.}
 
-\item{id}{The ID (.id) of the document to update description (if NULL, the
-.id column from document will be used).}
+\item{ids}{The IDs (.id) of the document to update description (if NULL, the
+.id column from documents will be used).}
 
 \item{documents}{A data frame with columns to update.}
 

@@ -4,7 +4,7 @@ test_that("Create Index", {
     create_index("amcat4r-test")
   )
   expect_true(
-    "amcat4r-test" %in% list_indexes()
+    "amcat4r-test" %in% list_indexes()$name
   )
 })
 
