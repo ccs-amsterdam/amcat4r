@@ -30,8 +30,7 @@ test_that("cache tokens on disk and retrieve", {
   withr::with_options(
     list(amcat4r_token_cache = tmp),
     {
-      attr(token, "cache_choice") <- 1L
-      amcat4r:::tokens_cache(token, server)
+      amcat4r:::tokens_cache(token, server, cache = 1)
       expect_true(file.exists(tmp))
     }
   )

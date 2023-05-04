@@ -58,7 +58,7 @@ amcat_login <- function(server,
 
   tokens$authorization <- config[["authorization"]]
   if (is.null(attr(tokens, "cache_choice"))) attr(tokens, "cache_choice") <- cache
-  tokens <- tokens_cache(tokens, server)
+  tokens <- tokens_cache(tokens, server, cache)
   invisible(tokens)
 }
 
@@ -97,10 +97,13 @@ get_middlecat_token <- function(server,
 }
 
 # internal function to cache tokens
-tokens_cache <- function(tokens, server) {
+tokens_cache <- function(tokens, server, cache) {
 
-  cache_choice <- attr(tokens, "cache_choice")
-  if (!interactive()) cache_choice <- 2L
+  cache_choice <- cache
+  if (is.null(cache_choice)) cache_choice <- attr(tokens, "cache_choice")
+  if (is.null(cache_choice) & !interactive())
+    stop("If you want to run this in a non-interactive environment, ",
+         "you have to set a cache mode in amcat_login")
   if (is.null(cache_choice) & interactive()) {
     cache_choice <- utils::menu(
       c("Store on disk (less secure)",
@@ -170,7 +173,7 @@ amcat_token_refresh <- function(tokens, server) {
 
   class(tokens) <- c("amcat4_token", class(tokens))
   attr(tokens, "cache_choice") <- cache_choice
-  tokens <- tokens_cache(tokens, server)
+  tokens <- tokens_cache(tokens, server, cache_choice)
 
   return(tokens)
 }
