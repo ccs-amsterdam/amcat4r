@@ -118,6 +118,7 @@ update_documents <- function(index,
                              credentials = NULL) {
   if (is.null(id) && ".id" %in% colnames(documents)) id <- documents[[".id"]]
   if (is.null(id)) stop("id is required either in the id or documents argument")
+  documents <- documents[,colnames(documents) != ".id"]
   documents$.id <- NULL
   bodies <- as.list(documents)
   for (i in seq_along(bodies)) {

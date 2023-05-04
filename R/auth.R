@@ -47,7 +47,7 @@ amcat_login <- function(server,
 
   if (config[["authorization"]] == "no_auth") {
     cli::cli_inform(c("v" = "Authentication at {server} successful!"))
-    tokens$token_type <- "no_auth"
+    tokens$authorization <- "no_auth"
     # use "httr2_token" class for a unified printing
     class(tokens) <- c("amcat4_token", "httr2_token")
   } else if (is.null(tokens)) {
@@ -100,6 +100,7 @@ get_middlecat_token <- function(server,
 tokens_cache <- function(tokens, server) {
 
   cache_choice <- attr(tokens, "cache_choice")
+  if (!interactive()) cache_choice <- 2L
   if (is.null(cache_choice) & interactive()) {
     cache_choice <- utils::menu(
       c("Store on disk (less secure)",
