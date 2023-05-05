@@ -6,6 +6,10 @@ test_that("Create Index", {
   expect_true(
     "amcat4r-test" %in% list_indexes()$name
   )
+  expect_true({
+    modify_index("amcat4r-test", guest_role = "metareader")
+    list_indexes()$guest_role == "METAREADER"
+  })
 })
 
 test_that("documents", {

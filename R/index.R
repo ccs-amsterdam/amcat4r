@@ -31,6 +31,8 @@ delete_index <- function(index, credentials = NULL) {
 
 #' Create an index
 #'
+#' Create or modify an index.
+#'
 #' @param index short name of the index to create (follows naming conventions of
 #'   Elasticsearch, see details).
 #' @param name optional more descriptive name of the index to create (all
@@ -61,6 +63,15 @@ create_index <- function(index, name=index, description = NULL, guest_role = NUL
   if (!is.null(guest_role)) guest_role <- tolower(guest_role)
   body <- list(id=index, name = name, description = description, guest_role = guest_role)
   invisible(request(credentials, "index/", body = body, "POST"))
+}
+
+
+#' @describeIn create_index Modify an index
+#' @export
+modify_index <- function(index, name=index, description = NULL, guest_role = NULL, credentials = NULL) {
+  if (!is.null(guest_role)) guest_role <- tolower(guest_role)
+  body <- list(id=index, name = name, description = description, guest_role = guest_role)
+  invisible(request(credentials, "index/", body = body, "PUT"))
 }
 
 
