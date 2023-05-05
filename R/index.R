@@ -59,19 +59,19 @@ delete_index <- function(index, credentials = NULL) {
 #' }
 #'
 #' @export
-create_index <- function(index, name=index, description = NULL, guest_role = NULL, credentials = NULL) {
+create_index <- function(index, name = index, description = NULL, guest_role = NULL, credentials = NULL) {
   if (!is.null(guest_role)) guest_role <- tolower(guest_role)
-  body <- list(id=index, name = name, description = description, guest_role = guest_role)
+  body <- list(id = index, name = name, description = description, guest_role = guest_role)
   invisible(request(credentials, "index/", body = body, "POST"))
 }
 
 
 #' @describeIn create_index Modify an index
 #' @export
-modify_index <- function(index, name=index, description = NULL, guest_role = NULL, credentials = NULL) {
+modify_index <- function(index, name = index, description = NULL, guest_role = NULL, credentials = NULL) {
   if (!is.null(guest_role)) guest_role <- tolower(guest_role)
-  body <- list(id=index, name = name, description = description, guest_role = guest_role)
-  invisible(request(credentials, "index/", body = body, "PUT"))
+  body <- list(name = name, description = description, guest_role = guest_role)
+  invisible(request(credentials, c("index/", index), body = body, "PUT"))
 }
 
 
