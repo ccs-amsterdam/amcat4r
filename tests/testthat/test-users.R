@@ -13,17 +13,20 @@ test_that("query", {
   })
 
   expect_equal({
-    list_users()$role
+    users <- list_users()
+    users[users$email == "test@example.com", ]$role
   }, "WRITER")
 
   expect_equal({
     modify_user("test@example.com", role = "admin")
-    list_users()$role
+    users <- list_users()
+    users[users$email == "test@example.com", ]$role
   }, "ADMIN")
 
   expect_equal({
     modify_user("test@example.com", role = "reader")
-    list_users()$role
+    users <- list_users()
+    users[users$email == "test@example.com", ]$role
   }, "READER")
 
   expect_false({

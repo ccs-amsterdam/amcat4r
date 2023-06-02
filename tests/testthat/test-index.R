@@ -8,7 +8,8 @@ test_that("Create Index", {
   )
   expect_true({
     modify_index("amcat4r-test", guest_role = "metareader")
-    list_indexes()$guest_role == "METAREADER"
+    indexes <- list_indexes()
+    indexes[indexes$id == "amcat4r-test", ]$guest_role == "METAREADER"
   })
 })
 
