@@ -44,6 +44,29 @@ test_that("documents", {
 
 })
 
+test_that("date conversion", {
+
+  test_doc <- data.frame(
+    .id = "1",
+    title = "test",
+    text = "test",
+    date = "2022-01-01T00:00:00"
+  )
+  upload_documents("amcat4r-test", documents = test_doc)
+  Sys.sleep(2) # seems to take a second
+  expect_equivalent(
+    query_documents("amcat4r-test", queries = NULL, fields = NULL)$date,
+    strptime("2022-01-01", format =  "%Y-%m-%d")
+  )
+
+  update_documents("amcat4r-test", ids = "1", documents = data.frame(date = "2022-01-01T00:00:01"))
+  Sys.sleep(2) # seems to take a second
+  expect_equivalent(
+    query_documents("amcat4r-test", queries = NULL, fields = NULL)$date,
+    strptime("2022-01-01T00:00:01", format =  "%Y-%m-%dT%H:%M:%S")
+  )
+})
+
 test_that("users", {
   skip_if(as.logical(Sys.getenv("amcat_offline")))
 

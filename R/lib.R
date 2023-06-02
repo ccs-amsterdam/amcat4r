@@ -112,8 +112,12 @@ convert_datecols <- function(df, index) {
   type <- NULL
   datecols <- dplyr::filter(get_fields(index), type == "date")$name
 
-  for (date_col in intersect(colnames(df), datecols))
-    df[[date_col]] <- strptime(df[[date_col]], format =  "%Y-%m-%dT%H:%M:%S")
+  for (date_col in intersect(colnames(df), datecols)) {
+    d_col <- strptime(df[[date_col]], format =  "%Y-%m-%dT%H:%M:%S")
+    # correct for dates and midnight
+    d_col[is.na(d_col)] <- strptime(d_col[is.na(d_col)], format = "%Y-%m-%d")
+    df[[date_col]] <- d_col
+  }
   df
 }
 
