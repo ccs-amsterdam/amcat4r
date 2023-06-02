@@ -2,13 +2,12 @@ pkg.env <- new.env()
 
 #' Helper function to get credentials from argument or pkg.env
 #' @noRd
-get_credentials = function(credentials=NULL) {
+get_credentials = function(credentials = NULL) {
 
   if (is.null(credentials)) {
     if (!is.null(pkg.env$current_server)) {
       credentials = amcat_get_token(pkg.env$current_server)
       credentials$host <- pkg.env$current_server
-      credentials$authorization <- pkg.env$authorization
     } else {
       stop("Please use amcat_login() first")
     }

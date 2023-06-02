@@ -152,6 +152,7 @@ amcat_token_check <- function(tokens, server) {
 amcat_token_refresh <- function(tokens, server) {
 
   cache_choice <- attr(tokens, "cache_choice")
+  authorization <- tokens$authorization
   middlecat <- get_config(server)[["middlecat_url"]]
   client <- httr2::oauth_client(
     id = "amcat4r",
@@ -173,6 +174,7 @@ amcat_token_refresh <- function(tokens, server) {
 
   class(tokens) <- c("amcat4_token", class(tokens))
   attr(tokens, "cache_choice") <- cache_choice
+  tokens$authorization <- authorization
   tokens <- tokens_cache(tokens, server, cache_choice)
 
   return(tokens)
@@ -200,7 +202,6 @@ amcat_get_token <- function(server = NULL, warn = TRUE) {
   if (rlang::env_has(pkg.env, rlang::hash(server))) {
     tokens <- rlang::env_get(pkg.env, rlang::hash(server))
   } else if (!is.null(getOption("amcat4r_token_cache"))) { # check option next
-    getOption("amcat4r_token_cache")
     tokens <- httr2::secret_read_rds(path = getOption("amcat4r_token_cache"),
                                      key = I(rlang::hash(server)))
   } else { # lastly check disk cache
