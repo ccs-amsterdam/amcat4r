@@ -5,7 +5,7 @@ if (!as.logical(Sys.getenv("amcat_offline")))
 test_that("query", {
   skip_if(as.logical(Sys.getenv("amcat_offline")))
 
-  expect_false("test@example.com" %in% list_users()$email)
+  expect_false("test@example.com" %in% suppressWarnings(list_users()$email))
 
   expect_true({
     create_user("test@example.com", role = "WRITER")

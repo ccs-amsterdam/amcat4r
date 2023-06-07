@@ -9,32 +9,97 @@ query_documents(
   queries = NULL,
   fields = c("date", "title"),
   filters = NULL,
-  scroll = "5m",
   per_page = 1000,
-  credentials = NULL,
+  max_pages = 1,
+  page = NULL,
   merge_tags = ";",
-  max_pages = 1
+  scroll = NULL,
+  verbose = TRUE,
+  credentials = NULL
 )
 }
 \arguments{
-\item{index}{The index to query}
+\item{index}{The index to query.}
 
-\item{queries}{An optional vector of queries to run (implicit OR)}
+\item{queries}{An optional vector of queries to run (implicit OR).}
 
-\item{fields}{An optional vector of fields to return}
+\item{fields}{An optional vector of fields to return (returns all fields if
+NULL).}
 
-\item{filters}{An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))}
+\item{filters}{An optional list of filters, e.g. \code{list(publisher='A',
+date=list(gte='2022-01-01')}).}
 
-\item{scroll}{Time to keep scrolling cursor alive}
+\item{per_page}{Number of results per page.}
 
-\item{per_page}{Number of results per page}
+\item{max_pages}{Stop after getting this many pages. Set to \code{Inf} to
+retrieve all.}
 
-\item{credentials}{The credentials to use. If not given, uses last login information}
+\item{page}{Request a specific page (is ignored when \code{scroll} is set).}
 
-\item{merge_tags}{Character to merge tag fields with, default ';'. Set to NULL to prevent merging.}
+\item{merge_tags}{Character to merge tag fields with, default ';'. Set to
+NULL to prevent merging.}
 
-\item{max_pages}{Stop after getting this many pages. Set to 0 to retrieve all.}
+\item{scroll}{Instead of scrolling indefinitely until max_pages is reached,
+you can set a time here that amcat4r keeps retrieving new pages before it
+stops (see examples).}
+
+\item{credentials}{The credentials to use. If not given, uses last login
+information}
 }
 \description{
-Conduct a query and return the resulting documents
+This function queries the database and retrieves documents that fit the
+query.
+}
+\details{
+This function queries the database and retrieves documents that fit the
+query. The results can be further narrowed down using filters. If there are
+many results, they are divided into pages to keep the data that is sent from
+the amcat instance small. You can use the function to iterate over these
+pages to retrieve many or all or just a specific one (if you want to batch
+process an index and only work on, e.g., 100 documents at a time).
+
+AmCAT uses the Elasticsearch query language. Find the documentation here:
+\url{https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-query-notes}.
+}
+\examples{
+\dontrun{
+# retrieve all fields from all documents
+query_documents("state_of_the_union", queries = NULL, fields = NULL)
+
+# query "migration" and select text field
+query_documents("state_of_the_union", queries = "migration", fields = "text")
+
+# note that by default, the query searches all text fields (see ?get_fields for field types)
+query_documents("state_of_the_union", queries = "1908", fields = "text")
+
+# to narrow a search to the title field use
+query_documents("state_of_the_union", queries = "title:1908", fields = "text")
+
+# searches support wild cards
+query_documents("state_of_the_union", queries = "migra*", fields = NULL)
+
+# if you query more than one term, you can use OR or leave it out since it is
+# used implicitly anyway. So these two do the same
+query_documents("state_of_the_union", queries = "migra* OR refug*")
+query_documents("state_of_the_union", queries = "migra* refug*")
+
+# you can search for literal matches using double quotes
+query_documents("state_of_the_union", queries = '"migration laws"')
+
+# and you can chain several boolean operators together
+query_documents("state_of_the_union", queries = "(migra* OR refug*) AND illegal NOT legal")
+
+# get only the first result
+query_documents("state_of_the_union", queries = "migra*", per_page = 1, page = 1, fields = NULL)
+
+# get the 81st resutl
+query_documents("state_of_the_union", queries = "migra*", per_page = 80, page = 2, fields = NULL)
+
+# If you want to retrieve many pages/documents at once, you should use the
+scroll API by setting a scroll value. E.g., to scroll for 5 seconds before
+collecting results use:
+query_documents("state_of_the_union", scroll = "5s", per_page = 1, max_pages = Inf)
+# or scroll for 5 minutes
+query_documents("state_of_the_union", scroll = "5m", per_page = 1, max_pages = Inf)
+}
 }

@@ -19,6 +19,15 @@ test_that("query", {
     dim(query_documents("amcat4r-test", queries = NULL, fields = NULL)),
     c(10, 6)
   )
+  expect_equal(
+    dim(query_documents("amcat4r-test", queries = NULL, fields = "date")),
+    c(10, 2)
+  )
+
+  expect_false(isTRUE(all.equal(
+    query_documents(index = "amcat4r-test", queries = NULL, per_page = 1, page = 1, max_pages = 1),
+    query_documents("amcat4r-test", queries = NULL, per_page = 1, page = 2, max_pages = 2)
+  )))
 
   expect_equal(
     colnames(
@@ -61,7 +70,7 @@ test_that("query", {
                      date = list(gte = "2023-01-01"))
     )
     Sys.sleep(2) # seems to take a second to work
-    sum(is.na(query_documents("amcat4r-test", queries = NULL, fields = c("test", "title"))))},
+    sum(is.na(query_documents("amcat4r-test", queries = NULL, fields = c("test", "title"), scroll = "1m")))},
     6L
   )
 
