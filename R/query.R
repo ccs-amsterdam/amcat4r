@@ -100,10 +100,10 @@ query_documents <- function(index,
       max_pages <- 10000 %/% per_page
       cli::cli_alert_warning(
         c("You requested more than 10 000 results {per_page} * {max_pages} ",
-        "(per_page * max_pages) = {per_page * max_pages}, which will not ",
-        "work. If you want more than 10 000 documents, you need to use the ",
-        "scroll API, e.g., by setting scroll=\"5m\". For now, you will ",
-        "only ge the first {max_pages} pages.")
+          "(per_page * max_pages) = {per_page * max_pages}, which will not ",
+          "work. If you want more than 10 000 documents, you need to use the ",
+          "scroll API, e.g., by setting scroll=\"5m\". For now, you will ",
+          "only ge the first {max_pages} pages.")
       )
     }
   }
@@ -114,8 +114,8 @@ query_documents <- function(index,
   )
   if (verbose) {
     new_results <- results <- numeric()
-    cli::cli_progress_step("Retrieved {length(new_results)} results from page {length(results)}",
-                                      spinner = TRUE)
+    cli::cli_progress_step("Retrieved {nrow(new_results)} results from page {length(results)}",
+                           spinner = TRUE)
   }
 
   results <- list()
