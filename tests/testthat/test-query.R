@@ -29,6 +29,11 @@ test_that("query", {
     query_documents("amcat4r-test", queries = NULL, per_page = 1, page = 2, max_pages = 2)
   )))
 
+  expect_length(
+    query_documents("amcat4r-test", queries = NULL, per_page = 1, max_pages = 10)$.id,
+    10L
+  )
+
   expect_equal(
     colnames(
       query_aggregate("amcat4r-test",

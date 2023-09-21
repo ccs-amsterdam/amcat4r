@@ -99,11 +99,11 @@ query_documents <- function(index,
       max_pages_old <- max_pages
       max_pages <- 10000 %/% per_page
       cli::cli_alert_warning(
-        c("You requested more than 10 000 results {per_page} * {max_pages} ",
+        c("You requested more than 10 000 results {per_page} * {max_pages_old} ",
           "(per_page * max_pages) = {per_page * max_pages}, which will not ",
           "work. If you want more than 10 000 documents, you need to use the ",
-          "scroll API, e.g., by setting scroll=\"5m\". For now, you will ",
-          "only ge the first {max_pages} pages.")
+          "{.emph scroll API}, e.g., by setting {.code scroll=\"5m\"}. For now, ",
+          "you will only ge the first {max_pages} pages.")
       )
     }
   }
@@ -140,8 +140,13 @@ query_documents <- function(index,
     # requesting a specific page. scroll takes precedence in the API, hence
     # when scroll != NULL, page is ignored
     if (is.null(scroll)) {
+      r <<- r
       body$page <- body$page + 1
-      if (body$page >= r$meta$page_count) break
+      # for when user sets page = NULL
+      if (length(body$page) == 0) {
+        body$page <- 1L
+      }
+      if (isTRUE(body$page >= r$meta$page_count)) break
     } else {
       body$scroll_id <- r$meta$scroll_id
     }

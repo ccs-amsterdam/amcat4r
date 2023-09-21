@@ -78,19 +78,24 @@ modify_index <- function(index, name = index, description = NULL, guest_role = N
 #' Upload documents
 #'
 #' @param index The index name to create.
-#' @param documents A data frame with columns title, text, date, and optional
-#'   other columns.
-#' @param columns An optional list with data types, e.g. list(author = "keyword").
-#' @param chunk_size Uploads are broken into chunks to prevent errors. Smaller
-#'   chunks are less error-prone, but this also makes the upload slower.
+#' @param documents A data frame with columns title, text, date, and
+#'   optional other columns.
+#' @param columns An optional list with data types, e.g. list(author =
+#'   "keyword").
+#' @param chunk_size Uploads are broken into chunks to prevent errors.
+#'   Smaller chunks are less error-prone, but this also makes the
+#'   upload slower.
+#' @param max_tries In case something goes wrong, how often should the
+#'   function retry to send the documents?
 #' @param verbose Should a progress bar be printed during upload.
-#' @param credentials The credentials to use. If not given, uses last login
-#'   information.
+#' @param credentials The credentials to use. If not given, uses last
+#'   login information.
 #' @export
 upload_documents <- function(index,
                              documents,
                              columns = NULL,
                              chunk_size = 100L,
+                             max_tries = 5L,
                              verbose = TRUE,
                              credentials = NULL) {
   req_fields <- c("title", "date", "text") # hard coded, might change later
@@ -103,14 +108,15 @@ upload_documents <- function(index,
   # chunk uploads
   rows <- seq_len(nrow(documents))
   chunks <- split(rows, ceiling(seq_along(rows) / chunk_size))
-  if (verbose & length(chunks) > 1L) pb <- progress::progress_bar$new(total = length(chunks))
+  if (verbose & length(chunks) > 1L) cli::cli_progress_bar("Uploading", total = length(chunks))
   for (r in chunks) {
-    if (verbose & length(chunks) > 1L) pb$tick()
+    if (verbose & length(chunks) > 1L) cli::cli_progress_update()
     body <- list(documents = documents[r, ])
     if (!is.null(columns)) body$columns <- lapply(columns, jsonlite::unbox)
-    request(credentials, c("index", index, "documents"), "POST", body, auto_unbox = FALSE) |>
+    request(credentials, c("index", index, "documents"), "POST", body, max_tries = max_tries, auto_unbox = FALSE) |>
       invisible()
   }
+  if (verbose & length(chunks) > 1L) cli::cli_progress_done()
 }
 
 
