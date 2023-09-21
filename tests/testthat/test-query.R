@@ -37,18 +37,29 @@ test_that("query", {
   expect_equal(
     colnames(
       query_aggregate("amcat4r-test",
-                      axes = list(list(field="keyword", list(field="date", interval="day"))),
+                      axes = list(list(field="keyword",
+                                       list(field="date", interval="day"))),
                       queries = "test")
     ),
     c("keyword", "n")
   )
 
-  expect_equal(
+  expect_error(
       query_aggregate("amcat4r-test",
-                      axes = list(list(field="keyword", list(field="date", interval="day"))),
+                      axes = list(list(field="text",
+                                       list(field="date", interval="day"))),
                       queries = "test",
                       filters = list(cats = "cute",
-                                     date = list(gte = "1900-01-01")))$n,
+                                     date = list(gte = "1900-01-01"))),
+    "Aggregation axes need to be either date or keyword"
+  )
+
+  expect_equal(
+    query_aggregate("amcat4r-test",
+                    axes = list(list(field="keyword", list(field="date", interval="day"))),
+                    queries = "test",
+                    filters = list(cats = "cute",
+                                   date = list(gte = "1900-01-01")))$n,
     5
   )
 

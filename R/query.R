@@ -178,10 +178,24 @@ query_documents <- function(index,
 #'                                date = list(gte = "1900-01-01")))
 #' }
 #' @export
-query_aggregate <- function(index, axes, queries=NULL, filters=NULL, credentials=NULL) {
-  body = list(axes=axes, queries=queries, filters=filters)
-  r = request(credentials, c("index", index, "aggregate"), method = "POST", body=body)
-  d = dplyr::bind_rows(r$data)
+query_aggregate <- function(index, axes,
+                            queries = NULL,
+                            filters = NULL,
+                            credentials = NULL) {
+
+  name <- NULL
+  # axes must be keyword or date #9: check
+  ax_fields <- unlist(axes)[names(unlist(axes)) == "field"]
+  if (!all(dplyr::filter(get_fields(index), name %in%
+                        ax_fields)$type %in% c("date", "keyword"))) {
+    cli::cli_abort(paste(
+      "Aggregation axes need to be either date or keyword fields.",
+      "Check the field types with {.fn get_field}"
+    ))
+  }
+  body <- list(axes = axes, queries = queries, filters = filters)
+  r <- request(credentials, c("index", index, "aggregate"), method = "POST", body = body)
+  d <- dplyr::bind_rows(r$data)
   if ("_query" %in% colnames(d)) d <- dplyr::rename(d, .query = "_query")
   convert_datecols(d, index)
 }
