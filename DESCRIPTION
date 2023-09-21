@@ -5,8 +5,16 @@ Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 Version: 4.0.12.9000
 Authors@R: 
-    c(person("Wouter", "van Atteveldt", email = "wouter@vanatteveldt.com", role = c("aut", "cre")),
-    person("Johannes", "Gruber", email = "johannesb.gruber@gmail.com", role = "ctb"))
+    c(person(given = "Wouter", 
+             family = "van Atteveldt", 
+             email = "wouter@vanatteveldt.com", 
+             role = c("aut", "cre"),
+             comment = c(ORCID = "0000-0003-1237-538X")),
+      person(given = "Johannes B.",
+             family = "Gruber",
+             email = "JohannesB.Gruber@gmail.com", 
+             role = c("aut", "ctb"),
+             comment = c(ORCID = "0000-0001-9177-1772")))
 Imports:
     cli,
     dplyr,
@@ -14,14 +22,13 @@ Imports:
     httr2,
     jsonlite,
     methods,
-    progress,
+    pillar,
     purrr,
     rappdirs,
-    rlang,
     remotes,
+    rlang,
     tibble,
-    utils,
-    pillar
+    utils
 Suggests:
     covr,
     dockr,

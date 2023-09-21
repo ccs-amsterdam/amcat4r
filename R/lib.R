@@ -22,6 +22,7 @@ request_response <- function(credentials,
                              method = "GET",
                              body = NULL,
                              error_on_404 = TRUE,
+                             max_tries = NULL,
                              auto_unbox = TRUE,
                              ...) {
 
@@ -39,7 +40,12 @@ request_response <- function(credentials,
                                        error_on_404 ,
                                        httr2::resp_status(resp) >= 400),
       body = amcat_error_body
-    )
+    ) |>
+    # for uploads, we sometimes get 500/502 when elastic is processing new documents
+    # in these cases amcat4 reports a server error because the connection times out.
+    # It makes sense to wait a little and retry
+    httr2::req_retry(max_tries = max_tries,
+                     is_transient = function(x) httr2::resp_status(x) %in% c(429, 500, 502, 503))
 
   if (!is.null(body)) {
     req <- req |>
@@ -82,20 +88,25 @@ make_path <- function(...) {
 #' @noRd
 amcat_error_body <- function(resp) {
 
-  pkg.env$resp <- resp
-
   if (grepl("json", httr2::resp_content_type(resp), fixed = TRUE)) {
     ebody <- httr2::resp_body_json(resp)
-    # TODO: find a cleaner way to parse this
-    msg <- try(ebody[["detail"]][[1]][["msg"]])
-    if (methods::is(msg, "try-error")) msg <- NULL
-    detail <- try(toString(ebody[["detail"]][[1]][["loc"]]))
-    if (methods::is(detail, "try-error")) detail <- toString(ebody[["detail"]])
-    error <- c(
-      ebody$error,
-      paste0(msg, detail, .sep = ": ")
-    )
+
+    if (is.list(ebody$detail$body$error)) {
+      error <- purrr::map_chr(names(ebody$detail$body$error), function(n) {
+        paste0(tools::toTitleCase(n), ": ", ebody$detail$body$error[[n]])
+      })
+    } else {
+      # TODO: find a cleaner way to parse this
+      msg <- try(ebody[["detail"]][[1]][["msg"]], silent = TRUE)
+      if (methods::is(msg, "try-error")) msg <- NULL
+      detail <- try(toString(ebody[["detail"]][[1]][["loc"]]), silent = TRUE)
+      if (methods::is(detail, "try-error")) detail <- toString(ebody[["detail"]])
+      error <- paste0(msg, detail, .sep = ": ")
+    }
+
   } else {
+    # if no further information is returned, revert to httr2 default by
+    # returning NULL
     error <- NULL
   }
 
