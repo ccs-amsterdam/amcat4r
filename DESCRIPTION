@@ -28,7 +28,8 @@ Imports:
     remotes,
     rlang,
     tibble,
-    utils
+    utils,
+    lubridate
 Suggests:
     covr,
     dockr,

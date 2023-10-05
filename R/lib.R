@@ -124,13 +124,9 @@ convert_datecols <- function(df, index) {
   datecols <- dplyr::filter(get_fields(index), type == "date")$name
 
   for (date_col in intersect(colnames(df), datecols)) {
-    # check if date or time
-    if (any(grepl("T", df[[date_col]], fixed = TRUE))) {
-      d_col <- strptime(df[[date_col]], format =  "%Y-%m-%dT%H:%M:%S")
-    } else {
-      d_col <- as.Date(df[[date_col]])
-    }
-    df[[date_col]] <- d_col
+    # AmCAT / elastic does not standardize date input/output, so try different formats
+    # (and maybe complain to whoever is in charge of AmCAT?)
+    df[[date_col]] <- lubridate::parse_date_time(df[[date_col]], orders=c("ymdHMSz", "ymdHMS", "ymdHM", "ymd"))
   }
   df
 }
