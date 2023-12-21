@@ -128,7 +128,7 @@ query_documents <- function(index,
     r <- httr2::resp_body_json(resp)
     new_results <- r$results
     if (!is.null(merge_tags)) new_results <- purrr::map(new_results, convert_tags)
-    new_results <- dplyr::bind_rows(new_results)
+    new_results <- safe_bind_rows(new_results)
     results <- append(results, list(new_results))
 
     if (verbose)

@@ -177,3 +177,20 @@ ping <- function(server) {
   }, error = function(resp) FALSE)
 }
 
+
+#' Helper function to safely turn results into a tibble without unnesting list fields
+#' @noRd
+safe_bind_rows <- function(l) {
+  purrr::map(l, function(tbl) {
+    purrr::map(tbl, function(c) {
+      if (is.list(c) & length(c) > 1) {
+        return(list(c))
+      } else {
+        return(c)
+      }
+    }) |>
+      tibble::as_tibble()
+  }) |>
+    dplyr::bind_rows()
+}
+
