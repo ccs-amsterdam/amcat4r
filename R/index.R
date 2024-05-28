@@ -77,20 +77,34 @@ modify_index <- function(index, name = index, description = NULL, guest_role = N
 
 #' Upload documents
 #'
-#' @param index The index name to create.
-#' @param documents A data frame with columns title, text, date, and
-#'   optional other columns.
+#' @param index The name of the index documents should be added to.
+#' @param documents A data frame with columns title, text, date, and optional
+#'   other columns.
 #' @param columns An optional list with data types, e.g. list(author =
 #'   "keyword").
-#' @param chunk_size Uploads are broken into chunks to prevent errors.
-#'   Smaller chunks are less error-prone, but this also makes the
-#'   upload slower.
-#' @param max_tries In case something goes wrong, how often should the
-#'   function retry to send the documents?
+#' @param chunk_size Uploads are broken into chunks to prevent errors. Smaller
+#'   chunks are less error-prone, but this also makes the upload slower.
+#' @param max_tries In case something goes wrong, how often should the function
+#'   retry to send the documents?
 #' @param verbose Should a progress bar be printed during upload.
-#' @param credentials The credentials to use. If not given, uses last
-#'   login information.
+#' @param credentials The credentials to use. If not given, uses last login
+#'   information.
+#'
+#' @return Nothing.
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' amcat_login("http://localhost/amcat")
+#' docs <- data.frame(
+#'   date = "2024-01-01",
+#'   title = "This is a title",
+#'   text = "This is some text"
+#' )
+#' create_index(index = "new_index")
+#' upload_documents(index = "new_index",
+#'                  documents = docs)
+#' }
 upload_documents <- function(index,
                              documents,
                              columns = NULL,

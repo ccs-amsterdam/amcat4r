@@ -15,26 +15,41 @@ upload_documents(
 )
 }
 \arguments{
-\item{index}{The index name to create.}
+\item{index}{The name of the index documents should be added to.}
 
-\item{documents}{A data frame with columns title, text, date, and
-optional other columns.}
+\item{documents}{A data frame with columns title, text, date, and optional
+other columns.}
 
 \item{columns}{An optional list with data types, e.g. list(author =
 "keyword").}
 
-\item{chunk_size}{Uploads are broken into chunks to prevent errors.
-Smaller chunks are less error-prone, but this also makes the
-upload slower.}
+\item{chunk_size}{Uploads are broken into chunks to prevent errors. Smaller
+chunks are less error-prone, but this also makes the upload slower.}
 
-\item{max_tries}{In case something goes wrong, how often should the
-function retry to send the documents?}
+\item{max_tries}{In case something goes wrong, how often should the function
+retry to send the documents?}
 
 \item{verbose}{Should a progress bar be printed during upload.}
 
-\item{credentials}{The credentials to use. If not given, uses last
-login information.}
+\item{credentials}{The credentials to use. If not given, uses last login
+information.}
+}
+\value{
+Nothing.
 }
 \description{
 Upload documents
+}
+\examples{
+\dontrun{
+amcat_login("http://localhost/amcat")
+docs <- data.frame(
+  date = "2024-01-01",
+  title = "This is a title",
+  text = "This is some text"
+)
+create_index(index = "new_index")
+upload_documents(index = "new_index",
+                 documents = docs)
+}
 }
