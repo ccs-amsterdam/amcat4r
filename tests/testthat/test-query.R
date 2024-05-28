@@ -4,7 +4,8 @@ if (!as.logical(Sys.getenv("amcat_offline")))
 test_that("query", {
   skip_if(as.logical(Sys.getenv("amcat_offline")))
   create_index("amcat4r-test")
-  set_fields("amcat4r-test", list(keyword = "keyword"))
+  set_fields("amcat4r-test", list(keyword = "keyword",
+                                  cats = "keyword"))
   test_doc <- data.frame(
     .id = 1:10,
     title = "test",
@@ -72,11 +73,13 @@ test_that("query", {
                     queries = "test",
                     filters = list(cats = "cute",
                                    date = list(gte = "2023-01-01")))$n,
-    4
+    5L
   )
 
   expect_equal({
     set_fields("amcat4r-test", list(test = "tag"))
+    # TODO: remove, admin should have automatic access
+    add_index_user("amcat4r-test", email = "_admin", role = "ADMIN")
     update_tags(
       index = "amcat4r-test",
       action = "add",
@@ -87,7 +90,7 @@ test_that("query", {
     )
     Sys.sleep(2) # seems to take a second to work
     sum(is.na(query_documents("amcat4r-test", queries = NULL, fields = c("test", "title"), scroll = "1m")))},
-    6L
+    5L
   )
 
   expect_equal({

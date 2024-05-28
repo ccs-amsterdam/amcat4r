@@ -38,6 +38,7 @@ delete_index <- function(index, credentials = NULL) {
 #' @param name optional more descriptive name of the index to create (all
 #'   characters are allowed here)
 #' @param description optional description of the index to create
+#' @param create_fields create fields in the new index.
 #' @param guest_role Role for unauthorized users. Options are "admin", "writer",
 #'   "reader" and "metareader".
 #' @param credentials The credentials to use. If not given, uses last login
@@ -59,17 +60,26 @@ delete_index <- function(index, credentials = NULL) {
 #' }
 #'
 #' @export
-create_index <- function(index, name = index, description = NULL, guest_role = NULL, credentials = NULL) {
-  if (!is.null(guest_role)) guest_role <- tolower(guest_role)
+create_index <- function(index,
+                         name = index,
+                         description = NULL,
+                         create_fields = list(title = "text", date = "date", text = "text"),
+                         guest_role = NULL,
+                         credentials = NULL) {
+  if (!is.null(guest_role)) guest_role <- toupper(guest_role)
   body <- list(id = index, name = name, description = description, guest_role = guest_role)
-  invisible(request(credentials, "index/", body = body, "POST"))
+  resp <- request(credentials, "index/", body = body, "POST")
+  if (!is.null(create_fields)) {
+    set_fields(index, create_fields)
+  }
+  invisible(resp)
 }
 
 
 #' @describeIn create_index Modify an index
 #' @export
 modify_index <- function(index, name = index, description = NULL, guest_role = NULL, credentials = NULL) {
-  if (!is.null(guest_role)) guest_role <- tolower(guest_role)
+  if (!is.null(guest_role)) guest_role <- toupper(guest_role)
   body <- list(name = name, description = description, guest_role = guest_role)
   invisible(request(credentials, c("index/", index), body = body, "PUT"))
 }
@@ -236,7 +246,7 @@ refresh_index <- function(index, credentials = NULL) {
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
 set_fields <- function(index, fields, credentials = NULL) {
-  invisible(request(credentials, c("index", index, "fields"), "POST", body = fields))
+  invisible(request(credentials, c("index", index, "fields"), "POST", body = as.list(fields)))
 }
 
 
@@ -246,7 +256,15 @@ set_fields <- function(index, fields, credentials = NULL) {
 #' @param credentials The credentials to use. If not given, uses last login information
 #' @export
 get_fields <- function(index, credentials = NULL) {
-  request(credentials, c("index", index, "fields")) |>
-    purrr::map_df(function(t) tibble::tibble(name = t$name, type = t$type))
+  res <- request(credentials, c("index", index, "fields"))
+  purrr::map(names(res), function(f) {
+    tibble::tibble(name = f,
+                   type = purrr::pluck(res[[f]], "type"),
+                   elastic_type = purrr::pluck(res[[f]], "elastic_type"),
+                   identifier = purrr::pluck(res[[f]], "identifier"),
+                   metareader = list(purrr::pluck(res[[f]], "metareader")),
+                   client_settings = list(purrr::pluck(res[[f]], "client_settings")))
+  }) |>
+    purrr::list_rbind()
 }
 

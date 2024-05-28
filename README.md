@@ -23,3 +23,9 @@ You can install the development version of amcat4r from
 # install.packages("devtools")
 remotes::install_github("ccs-amsterdam/amcat4r")
 ```
+
+Note: if you have an amcat4 instance older than 4.0.14, you can use this version of the package:
+
+``` r
+remotes::install_github("ccs-amsterdam/amcat4r", ref = "3943ef527315e76205f258b34a3b9d14a67b5f72")
+```

@@ -91,7 +91,11 @@ amcat_error_body <- function(resp) {
   if (grepl("json", httr2::resp_content_type(resp), fixed = TRUE)) {
     ebody <- httr2::resp_body_json(resp)
 
-    if (is.list(ebody$detail$body$error)) {
+    if (purrr::pluck_exists(ebody, "message")) {
+      return(purrr::pluck(ebody, "message"))
+    } else if (purrr::pluck_exists(ebody, "detail")) {
+      return(purrr::pluck(ebody, "detail"))
+    } else if (is.list(ebody$detail$body$error)) {
       error <- purrr::map_chr(names(ebody$detail$body$error), function(n) {
         paste0(tools::toTitleCase(n), ": ", ebody$detail$body$error[[n]])
       })

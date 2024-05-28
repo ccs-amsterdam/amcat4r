@@ -4,7 +4,7 @@
 #'   information.
 #'
 #' @export
-list_users <- function(credentials=NULL) {
+list_users <- function(credentials = NULL) {
   request(credentials, c("users")) |> dplyr::bind_rows()
 }
 
@@ -21,6 +21,7 @@ list_users <- function(credentials=NULL) {
 modify_user <- function(email,
                         role = "writer",
                         credentials = NULL) {
+  if (!is.null(role)) role <- toupper(role)
   body = list(
     role = role
   )
@@ -42,6 +43,7 @@ create_user <- function(email,
                         role = "writer",
                         index_access = NULL,
                         credentials = NULL) {
+  if (!is.null(role)) role <- toupper(role)
   body <- list(
     email = email, role = role,
     index_access = index_access
