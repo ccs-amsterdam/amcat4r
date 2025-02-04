@@ -6,11 +6,6 @@
 \usage{
 \method{pillar_shaft}{id_col}(x, ...)
 }
-\arguments{
-\item{x}{id column in a data.frame with amcat4 data.}
-
-\item{...}{Arguments passed to methods.}
-}
 \description{
 Truncate id columns when printing
 }

@@ -268,3 +268,32 @@ get_fields <- function(index, credentials = NULL) {
     purrr::list_rbind()
 }
 
+
+#' Retrieve a single document
+#'
+#' @param index The index to get fields for
+#' @param doc_id A single document_id
+#' @param fields Optional character vector listing the fields to retrieve
+#' @param credentials  The credentials to use. If not given, uses last login information
+#'
+#' @returns A tibble with one row containing the requested fields
+#' @export
+get_document <- function(index, doc_id, fields, credentials = NULL) {
+  res <- request(credentials, c("index", index, "documents", doc_id), query=list(fields=fields), query.multi="comma")
+  tibble::as_tibble(res) |> tibble::add_column(.id=doc_id, .before=1)
+}
+
+#' Retrieve multiple documents using a purrr map over get_document
+#'
+#' @param index The index to get fields for
+#' @param doc_ids A vector of document_ids
+#' @param fields Optional character vector listing the fields to retrieve
+#' @param credentials  The credentials to use. If not given, uses last login information
+#' @param ...Other options to pass to map, e.g. .progress
+#' @returns A tibble with one row containing the requested fields
+#' @export
+get_documents <- function(index, doc_ids, fields, credentials = NULL, ...) {
+  purrr::map(doc_ids, function(doc_id) get_document(index, doc_id, fields, credentials), ...) |>
+    purrr::list_rbind()
+}
+
