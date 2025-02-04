@@ -9,7 +9,7 @@ query_documents(
   queries = NULL,
   fields = c("date", "title"),
   filters = NULL,
-  per_page = 1000,
+  per_page = 200,
   max_pages = 1,
   page = NULL,
   merge_tags = ";",

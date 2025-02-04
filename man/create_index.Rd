@@ -9,6 +9,7 @@ create_index(
   index,
   name = index,
   description = NULL,
+  create_fields = list(title = "text", date = "date", text = "text"),
   guest_role = NULL,
   credentials = NULL
 )
@@ -29,6 +30,8 @@ Elasticsearch, see details).}
 characters are allowed here)}
 
 \item{description}{optional description of the index to create}
+
+\item{create_fields}{create fields in the new index.}
 
 \item{guest_role}{Role for unauthorized users. Options are "admin", "writer",
 "reader" and "metareader".}

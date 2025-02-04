@@ -24,6 +24,8 @@ request_response <- function(credentials,
                              error_on_404 = TRUE,
                              max_tries = NULL,
                              auto_unbox = TRUE,
+                             query = NULL,
+                             query.multi = "error",
                              ...) {
 
   # current httr2 version has a bug in req_url_path that can't handle objects of
@@ -47,6 +49,9 @@ request_response <- function(credentials,
     httr2::req_retry(max_tries = max_tries,
                      is_transient = function(x) httr2::resp_status(x) %in% c(429, 500, 502, 503))
 
+  if (!is.null(query)) {
+    req <- do.call(httr2::req_url_query, c(list(req), .multi=query.multi, query))
+  }
   if (!is.null(body)) {
     req <- req |>
       httr2::req_body_json(body, auto_unbox = auto_unbox)
