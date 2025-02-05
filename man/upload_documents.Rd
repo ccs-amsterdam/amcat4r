@@ -18,7 +18,7 @@ upload_documents(
 \item{index}{The name of the index documents should be added to.}
 
 \item{documents}{A data frame with columns title, text, date, and optional
-other columns.}
+other columns. An .id column is interpreted as elastic document IDs}
 
 \item{columns}{An optional list with data types, e.g. list(author =
 "keyword").}

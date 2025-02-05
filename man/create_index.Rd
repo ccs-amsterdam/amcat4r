@@ -9,7 +9,7 @@ create_index(
   index,
   name = index,
   description = NULL,
-  create_fields = list(title = "text", date = "date", text = "text"),
+  create_fields = NULL,
   guest_role = NULL,
   credentials = NULL
 )

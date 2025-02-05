@@ -63,7 +63,7 @@ delete_index <- function(index, credentials = NULL) {
 create_index <- function(index,
                          name = index,
                          description = NULL,
-                         create_fields = list(title = "text", date = "date", text = "text"),
+                         create_fields =NULL,
                          guest_role = NULL,
                          credentials = NULL) {
   if (!is.null(guest_role)) guest_role <- toupper(guest_role)
@@ -89,7 +89,7 @@ modify_index <- function(index, name = index, description = NULL, guest_role = N
 #'
 #' @param index The name of the index documents should be added to.
 #' @param documents A data frame with columns title, text, date, and optional
-#'   other columns.
+#'   other columns. An .id column is interpreted as elastic document IDs
 #' @param columns An optional list with data types, e.g. list(author =
 #'   "keyword").
 #' @param chunk_size Uploads are broken into chunks to prevent errors. Smaller
@@ -122,12 +122,6 @@ upload_documents <- function(index,
                              max_tries = 5L,
                              verbose = TRUE,
                              credentials = NULL) {
-  req_fields <- c("title", "date", "text") # hard coded, might change later
-  if (any(sapply(req_fields, function(c) any(is.na(documents[[c]])))) |
-    !all(req_fields %in% names(documents))) {
-    req_fields[length(req_fields)] <- paste("and", req_fields[length(req_fields)])
-    stop("The fields ", paste(req_fields, collapse = ", "), " are required and can never be NA")
-  }
   if (".id" %in% colnames(documents)) colnames(documents) <- gsub(".id", "_id", colnames(documents), fixed = TRUE)
   # chunk uploads
   rows <- seq_len(nrow(documents))
@@ -240,6 +234,22 @@ refresh_index <- function(index, credentials = NULL) {
 
 
 #' Set fields
+#'
+#' AmCAT currently supports the following field types:
+#'
+#' - **text**: For general text columns
+#' - **keyword**: Keywords - this is like text, but is not parsed as words. Most suitable for 'factor' / 'group' level data
+#' - **tag**: Tags - like keywords, but the assumption is that every document can have multiple values.
+#' - **date**: For date or date+time columns
+#' - **boolean**: Boolean (true/false) columns
+#' - **number**: General numberic columns
+#' - **integer**: Whole numbers
+#' - **object**: Nested dictionaries. These are not really analysed by AmCAT, but can store any data you need
+#' - **json**: Generic json data. This is analysed (and searchable) as text, use object if AmCAT does not need to search it
+#' - **vector**: Dense vectors, useful for e.g. embedding vectors
+#' - **geo_point**: Geometrical locations (long+lat)
+#' - **url**: A generic URL
+#' - **image**, **video**: A URL pointing to an image or video file
 #'
 #' @param index The index to set fields for
 #' @param fields A list with fields and data types, e.g. list(author="keyword")
