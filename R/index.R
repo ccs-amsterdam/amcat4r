@@ -235,26 +235,27 @@ refresh_index <- function(index, credentials = NULL) {
 
 #' Set fields
 #'
-#' AmCAT currently supports the following field types:
-#'
-#' - **text**: For general text columns
-#' - **keyword**: Keywords - this is like text, but is not parsed as words. Most suitable for 'factor' / 'group' level data
-#' - **tag**: Tags - like keywords, but the assumption is that every document can have multiple values.
-#' - **date**: For date or date+time columns
-#' - **boolean**: Boolean (true/false) columns
-#' - **number**: General numberic columns
-#' - **integer**: Whole numbers
-#' - **object**: Nested dictionaries. These are not really analysed by AmCAT, but can store any data you need
-#' - **json**: Generic json data. This is analysed (and searchable) as text, use object if AmCAT does not need to search it
-#' - **vector**: Dense vectors, useful for e.g. embedding vectors
-#' - **geo_point**: Geometrical locations (long+lat)
-#' - **url**: A generic URL
-#' - **image**, **video**: A URL pointing to an image or video file
-#'
 #' @param index The index to set fields for
 #' @param fields A list with fields and data types, e.g. list(author="keyword")
 #' @param credentials The credentials to use. If not given, uses last login information
+#'
+#' @details AmCAT currently supports the following field types:
+#'  - **text**: For general text columns
+#'  - **keyword**: Keywords - this is like text, but is not parsed as words. Most suitable for 'factor' / 'group' level data
+#'  - **tag**: Tags - like keywords, but the assumption is that every document can have multiple values.
+#'  - **date**: For date or date+time columns
+#'  - **boolean**: Boolean (true/false) columns
+#'  - **number**: General numberic columns
+#'  - **integer**: Whole numbers
+#'  - **object**: Nested dictionaries. These are not really analysed by AmCAT, but can store any data you need
+#'  - **json**: Generic json data. This is analysed (and searchable) as text, use object if AmCAT does not need to search it
+#'  - **vector**: Dense vectors, useful for e.g. embedding vectors
+#'  - **geo_point**: Geometrical locations (long+lat)
+#'  - **url**: A generic URL
+#'  - **image**, **video**: A URL pointing to an image or video file
+#'
 #' @export
+#' @md
 set_fields <- function(index, fields, credentials = NULL) {
   invisible(request(credentials, c("index", index, "fields"), "POST", body = as.list(fields)))
 }

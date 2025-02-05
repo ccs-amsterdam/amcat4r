@@ -14,20 +14,23 @@ set_fields(index, fields, credentials = NULL)
 \item{credentials}{The credentials to use. If not given, uses last login information}
 }
 \description{
-AmCAT currently supports the following field types:
+Set fields
 }
 \details{
-- **text**: For general text columns
-- **keyword**: Keywords - this is like text, but is not parsed as words. Most suitable for 'factor' / 'group' level data
-- **tag**: Tags - like keywords, but the assumption is that every document can have multiple values.
-- **date**: For date or date+time columns
-- **boolean**: Boolean (true/false) columns
-- **number**: General numberic columns
-- **integer**: Whole numbers
-- **object**: Nested dictionaries. These are not really analysed by AmCAT, but can store any data you need
-- **json**: Generic json data. This is analysed (and searchable) as text, use object if AmCAT does not need to search it
-- **vector**: Dense vectors, useful for e.g. embedding vectors
-- **geo_point**: Geometrical locations (long+lat)
-- **url**: A generic URL
-- **image**, **video**: A URL pointing to an image or video file
+AmCAT currently supports the following field types:
+\itemize{
+\item \strong{text}: For general text columns
+\item \strong{keyword}: Keywords - this is like text, but is not parsed as words. Most suitable for 'factor' / 'group' level data
+\item \strong{tag}: Tags - like keywords, but the assumption is that every document can have multiple values.
+\item \strong{date}: For date or date+time columns
+\item \strong{boolean}: Boolean (true/false) columns
+\item \strong{number}: General numberic columns
+\item \strong{integer}: Whole numbers
+\item \strong{object}: Nested dictionaries. These are not really analysed by AmCAT, but can store any data you need
+\item \strong{json}: Generic json data. This is analysed (and searchable) as text, use object if AmCAT does not need to search it
+\item \strong{vector}: Dense vectors, useful for e.g. embedding vectors
+\item \strong{geo_point}: Geometrical locations (long+lat)
+\item \strong{url}: A generic URL
+\item \strong{image}, \strong{video}: A URL pointing to an image or video file
+}
 }
