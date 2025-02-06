@@ -95,14 +95,15 @@ amcat_error_body <- function(resp) {
     ebody <- httr2::resp_body_json(resp)
     # error needs to be a string, so convert list to json string
     pluck_safe <- function(...) {
-      resp <- pluck(...)
+      resp <- purrr::pluck(...)
       if (is.list(resp)) resp <- jsonlite::toJSON(resp)
       return(resp)
     }
 
+
     if (purrr::pluck_exists(ebody, "message")) {
       return(pluck_safe(ebody, "message"))
-    }  else if (is.list(ebody$detail$body$error)) {
+    } else if (is.list(ebody) && is.list(ebody$detail) && is.list(ebody$detail$body) && is.list(ebody$detail$body$error)) {
       error <- purrr::map_chr(names(ebody$detail$body$error), function(n) {
         paste0(tools::toTitleCase(n), ": ", ebody$detail$body$error[[n]])
       })
