@@ -3,7 +3,7 @@ Type: Package
 Title: Controlling amcat4 from R
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-Version: 4.0.14.9000
+Version: 4.0.15.9000
 Authors@R: 
     c(person(given = "Wouter", 
              family = "van Atteveldt", 
