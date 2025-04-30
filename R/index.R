@@ -127,14 +127,35 @@ upload_documents <- function(index,
   rows <- seq_len(nrow(documents))
   chunks <- split(rows, ceiling(seq_along(rows) / chunk_size))
   if (verbose & length(chunks) > 1L) cli::cli_progress_bar("Uploading", total = length(chunks))
+  successes = 0
+  failures = list()
+
   for (r in chunks) {
     if (verbose & length(chunks) > 1L) cli::cli_progress_update()
     body <- list(documents = documents[r, ])
     if (!is.null(columns)) body$columns <- lapply(columns, jsonlite::unbox)
-    request(credentials, c("index", index, "documents"), "POST", body, max_tries = max_tries, auto_unbox = FALSE) |>
-      invisible()
+    res <- request(credentials, c("index", index, "documents"), "POST", body, max_tries = max_tries, auto_unbox = FALSE)
+    successes <- successes + res$successes
+    failures = c(failures, res$failures)
+    for (failure in res$failures) {
+      message = failure$create$error$reason
+      if (is.null(message)) message = failure
+      message(str_c("\U26A0 ", message))
+    }
   }
+
   if (verbose & length(chunks) > 1L) cli::cli_progress_done()
+  if (length(failures) > 0 ) {
+    if (successes == 0) {
+      message("\n\U274C All documents failed to upload. See function result and/or messages above for details")
+    } else {
+    message(str_glue("\n\U2757 Succesfully uploaded {successes} documents; length(failures)} failures, see function result and/or messages above for details"))
+    }
+  } else {
+    message(str_glue("\U2705 Succesfully uploaded {successes} documents!"))
+  }
+
+  invisible(res)
 }
 
 
