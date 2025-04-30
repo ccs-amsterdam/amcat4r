@@ -231,3 +231,60 @@ update_tags <- function(index, action, field, tag, ids = NULL, queries = NULL, f
   invisible(TRUE)
 }
 
+
+#' Delete documents by query
+#'
+#' @param index The index to query
+#' @param queries An optional vector of queries to run (implicit OR)
+#' @param filters An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))
+#' @param ids A optional vector of ids to add/remove tags from
+#' @examples
+#' \dontrun{
+#'  delete_by_query("my_index", filters=list(publisher='NY Times'))
+#'  delete_by_query("my_index", ids=c(42, 69))
+#'  delete_by_query("my_index", queries="advertisement")
+#' }
+#' @export
+delete_by_query <- function(index, ids = NULL, queries = NULL, filters = NULL, credentials = NULL) {
+  body <- list(queries = queries, filters = filters)
+  if (!is.null(ids)) {
+    body$ids = purrr::map(as.list(ids), as.character)
+  }
+  res <- request(credentials, c("index", index, "delete_by_query"), method="POST", body=body)
+  if (length(res$failures) > 0) {
+    warning(res$failures)
+    warning("Some documents failed to delete! See message above or the function result for details")
+  }
+  message(str_glue("Deleted {res$deleted} documents from index {index}"))
+  invisible(res)
+}
+
+#' Update documents by query
+#'
+#' @param index The index to query
+#' @param field The field name to update
+#' @param value The new value for the field
+#' @param queries An optional vector of queries to run (implicit OR)
+#' @param filters An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))
+#' @param ids A optional vector of ids to add/remove tags from
+#' @examples
+#' \dontrun{
+#'    update_by_query("my_index", "publisher", "NYT", filters=list(publisher='New York Times'))
+#'    update_by_query("my_index", "sentiment", -1, ids=c(3, 7, 9, 11))
+#' }
+#' @export
+update_by_query <- function(index, field, value, ids = NULL, queries = NULL, filters = NULL, credentials = NULL) {
+  body <- list(field=field, value=value, queries = queries, filters = filters)
+  if (!is.null(ids)) {
+    body$ids = purrr::map(as.list(ids), as.character)
+  }
+  res <- request(credentials, c("index", index, "update_by_query"), method="POST", body=body)
+  if (length(res$failures) > 0) {
+    warning(res$failures)
+    warning("Some documents failed to update! See message above or the function result for details")
+  }
+  message(str_glue("Updated {res$updated} documents from index {index}"))
+  invisible(res)
+}
+
+
