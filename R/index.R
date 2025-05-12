@@ -147,12 +147,12 @@ upload_documents <- function(index,
   if (verbose & length(chunks) > 1L) cli::cli_progress_done()
   if (length(failures) > 0 ) {
     if (successes == 0) {
-      message("\n\U274C All documents failed to upload. See function result and/or messages above for details")
+      cli::cli_alert_danger("All documents failed to upload. See function result and/or messages above for details")
     } else {
-    message(str_glue("\n\U2757 Succesfully uploaded {successes} documents; length(failures)} failures, see function result and/or messages above for details"))
+      cli::cli_alert_success("Succesfully uploaded {successes} documents; {length(failures)} failures, see function result and/or messages above for details")
     }
   } else {
-    message(str_glue("\U2705 Succesfully uploaded {successes} documents!"))
+    cli::cli_alert_success("Succesfully uploaded {successes} documents!")
   }
 
   invisible(res)

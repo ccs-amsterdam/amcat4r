@@ -255,7 +255,7 @@ delete_by_query <- function(index, ids = NULL, queries = NULL, filters = NULL, c
     warning(res$failures)
     warning("Some documents failed to delete! See message above or the function result for details")
   }
-  message(str_glue("Deleted {res$deleted} documents from index {index}"))
+  cli::cli_alert_info("Deleted {res$deleted} documents from index {index}")
   invisible(res)
 }
 
@@ -283,7 +283,7 @@ update_by_query <- function(index, field, value, ids = NULL, queries = NULL, fil
     warning(res$failures)
     warning("Some documents failed to update! See message above or the function result for details")
   }
-  message(str_glue("Updated {res$updated} documents from index {index}"))
+  cli::cli_alert_success("Updated {res$updated} documents from index {index}")
   invisible(res)
 }
 
