@@ -4,7 +4,10 @@ if (!as.logical(Sys.getenv("amcat_offline")))
 test_that("query", {
   skip_if(as.logical(Sys.getenv("amcat_offline")))
   create_index("amcat4r-test")
-  set_fields("amcat4r-test", list(keyword = "keyword",
+  set_fields("amcat4r-test", list(title = "text",
+                                  text = "text",
+                                  date = "date",
+                                  keyword = "keyword",
                                   cats = "keyword"))
   test_doc <- data.frame(
     .id = 1:10,

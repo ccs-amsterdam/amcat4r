@@ -11,6 +11,10 @@ test_that("Create Index", {
     indexes <- list_indexes()
     indexes[indexes$id == "amcat4r-test", ]$guest_role == "METAREADER"
   })
+  expect_equal({
+    set_fields("amcat4r-test", c(title = "text", text = "text", date = "date"))
+    get_fields("amcat4r-test")$name
+  }, c("date", "text", "title"))
 })
 
 test_that("documents", {

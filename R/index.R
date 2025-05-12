@@ -140,7 +140,7 @@ upload_documents <- function(index,
     for (failure in res$failures) {
       message = failure$create$error$reason
       if (is.null(message)) message = failure
-      message(str_c("\U26A0 ", message))
+      cli::cli_alert_info(message)
     }
   }
 
@@ -149,7 +149,7 @@ upload_documents <- function(index,
     if (successes == 0) {
       cli::cli_alert_danger("All documents failed to upload. See function result and/or messages above for details")
     } else {
-      cli::cli_alert_success("Succesfully uploaded {successes} documents; {length(failures)} failures, see function result and/or messages above for details")
+      cli::cli_alert_warning("Succesfully uploaded {successes} documents; {length(failures)} failures, see function result and/or messages above for details")
     }
   } else {
     cli::cli_alert_success("Succesfully uploaded {successes} documents!")
