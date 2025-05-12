@@ -159,9 +159,7 @@ amcat_token_refresh <- function(tokens, server) {
     token_url = glue::glue("{middlecat}/api/token")
   )
 
-  # Using the unexported function until
-  # https://github.com/r-lib/httr2/issues/186 is resolved.
-  tokens <- httr2:::token_refresh(
+  tokens <- httr2::oauth_flow_refresh(
     client,
     refresh_token = tokens$refresh_token,
     scope = NULL,
