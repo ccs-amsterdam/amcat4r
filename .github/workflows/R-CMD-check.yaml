@@ -4,30 +4,19 @@ on:
   push:
     branches: [main, master]
   pull_request:
-    branches: [main, master]
 
-name: R-CMD-check
+name: R-CMD-check.yaml
+
+permissions: read-all
 
 jobs:
   R-CMD-check:
-    runs-on: ${{ matrix.config.os }}
-
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
-
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
-          - {os: ubuntu-latest,   r: 'oldrel-1'}
-
+    runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: set up docker-compose V2
         run: |
@@ -42,47 +31,50 @@ jobs:
           rm docker-compose.yml docker-compose2
           sleep 30
 
-      - uses: r-lib/actions/setup-pandoc@v2
-
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: ${{ matrix.config.r }}
-          http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: |
-            any::rcmdcheck
-            any::covr
-          needs: |
-            coverage
-            check
+          extra-packages: any::rcmdcheck any::covr, any::xml2
+          needs: check
 
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
-          error-on: '"error"'
-
+          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+      
       - name: Test coverage
         run: |
-          covr::codecov(
+          cov <- covr::package_coverage(
             quiet = FALSE,
             clean = FALSE,
-            install_path = file.path(Sys.getenv("RUNNER_TEMP"), "package")
+            install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"), "package")
           )
+          print(cov)
+          covr::to_cobertura(cov)
         shell: Rscript {0}
+
+      - uses: codecov/codecov-action@v5
+        with:
+          # Fail if error if not on PR, or if on PR and token is given
+          fail_ci_if_error: ${{ github.event_name != 'pull_request' || secrets.CODECOV_TOKEN }}
+          files: ./cobertura.xml
+          plugins: noop
+          disable_search: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Show testthat output
         if: always()
         run: |
           ## --------------------------------------------------------------------
-          find ${{ runner.temp }}/package -name 'testthat.Rout*' -exec cat '{}' \; || true
+          find '${{ runner.temp }}/package' -name 'testthat.Rout*' -exec cat '{}' \; || true
         shell: bash
 
       - name: Upload test results
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-test-failures
           path: ${{ runner.temp }}/package
