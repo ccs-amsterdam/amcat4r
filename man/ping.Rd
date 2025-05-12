@@ -15,7 +15,7 @@ A logical value indicating if the server is reachable.
 }
 \description{
 Check if a server is reachable by sending a request to its
-  config endpoint.
+config endpoint.
 }
 \examples{
 \dontrun{

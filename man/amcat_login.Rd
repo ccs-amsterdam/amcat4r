@@ -24,20 +24,20 @@ Authenticate to an AmCAT instance
 }
 \details{
 Enabling refresh token rotation ensures added security as leaked
-  refresh tokens also become invalidated after a short while. It is currently
-  disabled by default as it is not fully supported by the underlying httr2
-  package.
+refresh tokens also become invalidated after a short while. It is currently
+disabled by default as it is not fully supported by the underlying httr2
+package.
 
-  If you select to store your tokens on disk in the interactive menu, they
-  are stored in the location indicated by
-  \code{rappdirs::user_cache_dir("httr2")}.
+If you select to store your tokens on disk in the interactive menu, they
+are stored in the location indicated by
+\code{rappdirs::user_cache_dir("httr2")}.
 
-  The function needs to open a browser, which will usually only work in an
-  interactive session. However, you can save the returned object in an rds
-  file (with \code{saveRDS()}) and tell amcat4r where to look for it:
-  \code{options(amcat4r_token_cache = "path/to/location/tokens.rds")}. If you
-  still have issues in an interactive session, check \link[utils]{browseURL}
-  to see if you can set a browser manually.
+The function needs to open a browser, which will usually only work in an
+interactive session. However, you can save the returned object in an rds
+file (with \code{saveRDS()}) and tell amcat4r where to look for it:
+\code{options(amcat4r_token_cache = "path/to/location/tokens.rds")}. If you
+still have issues in an interactive session, check \link[utils]{browseURL}
+to see if you can set a browser manually.
 }
 \examples{
 \dontrun{

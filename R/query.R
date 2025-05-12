@@ -18,6 +18,7 @@
 #'   stops (see examples).
 #' @param merge_tags Character to merge tag fields with, default ';'. Set to
 #'   NULL to prevent merging.
+#' @param verbose Should a progress bar be printed during upload.
 #' @param credentials The credentials to use. If not given, uses last login
 #'   information
 #'
@@ -85,6 +86,7 @@ query_documents <- function(index,
                             scroll = NULL,
                             verbose = TRUE,
                             credentials = NULL) {
+
   types <- get_fields(index)
   convert_tags <- function(row) {
     for (tag_col in intersect(names(row), types$name[types$type == "tag"])) {
@@ -238,6 +240,7 @@ update_tags <- function(index, action, field, tag, ids = NULL, queries = NULL, f
 #' @param queries An optional vector of queries to run (implicit OR)
 #' @param filters An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))
 #' @param ids A optional vector of ids to add/remove tags from
+#' @param credentials The credentials to use. If not given, uses last login information
 #' @examples
 #' \dontrun{
 #'  delete_by_query("my_index", filters=list(publisher='NY Times'))
@@ -267,6 +270,7 @@ delete_by_query <- function(index, ids = NULL, queries = NULL, filters = NULL, c
 #' @param queries An optional vector of queries to run (implicit OR)
 #' @param filters An optional list of filters, e.g. list(publisher='A', date=list(gte='2022-01-01'))
 #' @param ids A optional vector of ids to add/remove tags from
+#' @param credentials The credentials to use. If not given, uses last login information
 #' @examples
 #' \dontrun{
 #'    update_by_query("my_index", "publisher", "NYT", filters=list(publisher='New York Times'))

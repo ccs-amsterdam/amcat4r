@@ -15,7 +15,7 @@ get_documents(index, doc_ids, fields, credentials = NULL, ...)
 
 \item{credentials}{The credentials to use. If not given, uses last login information}
 
-\item{...Other}{options to pass to map, e.g. .progress}
+\item{...}{Other options to pass to map, e.g. .progress}
 }
 \value{
 A tibble with one row containing the requested fields

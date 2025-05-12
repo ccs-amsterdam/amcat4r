@@ -136,10 +136,10 @@ upload_documents <- function(index,
     if (!is.null(columns)) body$columns <- lapply(columns, jsonlite::unbox)
     res <- request(credentials, c("index", index, "documents"), "POST", body, max_tries = max_tries, auto_unbox = FALSE)
     successes <- successes + res$successes
-    failures = c(failures, res$failures)
+    failures <- c(failures, res$failures)
     for (failure in res$failures) {
-      message = failure$create$error$reason
-      if (is.null(message)) message = failure
+      message <- purrr::pluck(failure, "create", "error", "reason", .default = "")
+      if (is.null(message)) message <- failure
       cli::cli_alert_info(message)
     }
   }
@@ -321,7 +321,7 @@ get_document <- function(index, doc_id, fields, credentials = NULL) {
 #' @param doc_ids A vector of document_ids
 #' @param fields Optional character vector listing the fields to retrieve
 #' @param credentials  The credentials to use. If not given, uses last login information
-#' @param ...Other options to pass to map, e.g. .progress
+#' @param ... Other options to pass to map, e.g. .progress
 #' @returns A tibble with one row containing the requested fields
 #' @export
 get_documents <- function(index, doc_ids, fields, credentials = NULL, ...) {

@@ -43,6 +43,8 @@ NULL to prevent merging.}
 you can set a time here that amcat4r keeps retrieving new pages before it
 stops (see examples).}
 
+\item{verbose}{Should a progress bar be printed during upload.}
+
 \item{credentials}{The credentials to use. If not given, uses last login
 information}
 }

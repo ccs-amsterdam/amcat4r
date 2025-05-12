@@ -11,15 +11,14 @@ stop_amcat_docker(compose = NULL, filters = NULL)
 https://github.com/JBGruber/amcat4docker/blob/main/docker-compose.yml by
 default.}
 
-\item{filters}{Names of containers or named values for other filters. (See
-[https://docs.docker.com/engine/api/v1.41/#tag/Container/operation/ContainerList])}
+\item{filters}{Names of containers or named values for other filters.}
 }
 \description{
 Stop docker containers with AmCAT modules
 }
 \details{
 Stops either the containers defined in a compose file or the
-  filters. If filters is set, compose is ignored.
+filters. If filters is set, compose is ignored.
 }
 \examples{
 \dontrun{
