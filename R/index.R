@@ -127,8 +127,8 @@ upload_documents <- function(index,
   rows <- seq_len(nrow(documents))
   chunks <- split(rows, ceiling(seq_along(rows) / chunk_size))
   if (verbose & length(chunks) > 1L) cli::cli_progress_bar("Uploading", total = length(chunks))
-  successes = 0
-  failures = list()
+  successes <- 0
+  failures <- 0
 
   for (r in chunks) {
     if (verbose & length(chunks) > 1L) cli::cli_progress_update()
@@ -136,20 +136,24 @@ upload_documents <- function(index,
     if (!is.null(columns)) body$columns <- lapply(columns, jsonlite::unbox)
     res <- request(credentials, c("index", index, "documents"), "POST", body, max_tries = max_tries, auto_unbox = FALSE)
     successes <- successes + res$successes
-    failures <- c(failures, res$failures)
-    for (failure in res$failures) {
-      message <- purrr::pluck(failure, "create", "error", "reason", .default = "")
-      if (is.null(message)) message <- failure
-      cli::cli_alert_info(message)
+    if (!is.numeric(res$failures)) {
+      failures <- failures + length(res$failures)
+      for (failure in res$failures) {
+        message <- purrr::pluck(failure, "create", "error", "reason", .default = NULL)
+        if (is.null(message)) message <- failure
+        cli::cli_alert_info(message)
+      }
+    } else {
+      failures <- failures + res$failures
     }
   }
 
   if (verbose & length(chunks) > 1L) cli::cli_progress_done()
-  if (length(failures) > 0 ) {
+  if (failures > 0) {
     if (successes == 0) {
       cli::cli_alert_danger("All documents failed to upload. See function result and/or messages above for details")
     } else {
-      cli::cli_alert_warning("Succesfully uploaded {successes} documents; {length(failures)} failures, see function result and/or messages above for details")
+      cli::cli_alert_warning("Succesfully uploaded {successes} documents; {failures} failures, see function result and/or messages above for details")
     }
   } else {
     cli::cli_alert_success("Succesfully uploaded {successes} documents!")
