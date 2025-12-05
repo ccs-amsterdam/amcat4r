@@ -21,7 +21,7 @@ remotes::install_github("ccs-amsterdam/amcat4r")
 
 Before you can use AmCAT, you need to login:
 
-```{r}
+``` r
 amcat_login("https://amcat4.labs.vu.nl/amcat")
 ```
 
@@ -29,7 +29,7 @@ amcat_login("https://amcat4.labs.vu.nl/amcat")
 
 Some examples of how to query an index:
 
-```{r}
+``` r
 query_documents(INDEX)
 query_documents(INDEX, fields=list("publisher", "text"))
 query_documents(INDEX, filters = list(publisher="Guardian"))
@@ -41,7 +41,7 @@ query_documents(INDEX, queries = "hai*", fields = "text")
 
 Examples of creating an index, setting the fields, and uploading documents:
 
-```{r}
+``` r
 create_index(INDEX, name="Test index")
 
 set_fields(INDEX, list(title='text', text='text', publisher='keyword', date='date'))
