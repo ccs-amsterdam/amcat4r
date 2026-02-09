@@ -30,37 +30,33 @@
 #'   amcat_login("https://middlecat.up.railway.app/api/demo_resource")
 #' }
 amcat_login <- function(server,
+                        api_token = NULL,
                         token_refresh = FALSE,
                         force_refresh = FALSE,
                         cache = NULL) {
-
-  if (force_refresh) {
-    tokens <- NULL
-  } else {
-    tokens <- amcat_get_token(server, warn = FALSE)
-  }
-
   config <- get_config(server)
-  if (is.null(config$api_version))
+  tokens <- amcat4r:::amcat_get_token(server, warn = FALSE)
+
+  # Deal with API version-dependent authentication
+  if (is.null(config$api_version)) {
     stop(paste0("The server at ", server, " has API version < 4.0.11, ",
                 "please upgrade the server or use an older client to connect"))
-
-  if (config[["authorization"]] == "no_auth") {
-    cli::cli_inform(c("v" = "Authentication at {server} successful!"))
-    tokens$authorization <- "no_auth"
-    # use "httr2_token" class for a unified printing
-    class(tokens) <- c("amcat4_token", "httr2_token")
-  } else if (is.null(tokens)) {
-    tokens <- get_middlecat_token(server = server,
-                                  token_refresh = token_refresh,
-                                  middlecat = config[["middlecat_url"]])
+  } else if (package_version(config$api_version) >= "4.1") {
+    tokens <- auth_4_1(server, config=config, api_token=api_token)
+  } else {
+    tokens <- auth_4_0(server, config=config, token_refresh=token_refresh, force_refresh=force_refresh)
   }
 
-  tokens$authorization <- config[["authorization"]]
+  # Cache tokens and configuration
+  tokens$authorization <- config$authorization
+  tokens$api_version = config$api_version
+
   if (is.null(attr(tokens, "cache_choice"))) attr(tokens, "cache_choice") <- cache
   tokens <- tokens_cache(tokens, server, cache)
   invisible(tokens)
 }
+
+
 
 # internal function to get a token from middlecat
 get_middlecat_token <- function(server,

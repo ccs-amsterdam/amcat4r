@@ -8,6 +8,11 @@ list_users <- function(credentials = NULL) {
   request(credentials, c("users")) |> dplyr::bind_rows()
 }
 
+#' Get information about a user
+get_user <- function(user="me", credentials = NULL) {
+  request(credentials, c("users", user))
+}
+
 
 #' Modify an existing user
 #'
