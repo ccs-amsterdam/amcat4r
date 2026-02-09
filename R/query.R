@@ -83,7 +83,7 @@ query_documents <- function(index,
                             max_pages = 1,
                             page = NULL,
                             merge_tags = ";",
-                            scroll = NULL,
+                            scroll = "5m",
                             verbose = TRUE,
                             credentials = NULL) {
 
@@ -112,8 +112,10 @@ query_documents <- function(index,
   if (length(fields) == 1) fields <- list(fields)
   body <- list(
     queries = queries, fields = fields, filters = filters,
-    scroll = scroll, per_page = per_page, page = page
+    scroll = scroll, per_page = per_page
   )
+  if (!is.null(page)) body$page = page
+
   if (verbose) {
     new_results <- results <- numeric()
     cli::cli_progress_step("Retrieved {nrow(new_results)} results from page {length(results)}",

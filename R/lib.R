@@ -100,8 +100,10 @@ amcat_error_body <- function(resp) {
       return(resp)
     }
 
-
     if (purrr::pluck_exists(ebody, "message")) {
+      if (purrr::pluck_exists(ebody, "detail")) {
+        return(str_c(pluck_safe(ebody, "message"), ": ", pluck_safe(ebody, "detail")) )
+      }
       return(pluck_safe(ebody, "message"))
     } else if (is.list(ebody) && is.list(ebody$detail) && is.list(ebody$detail$body) && is.list(ebody$detail$body$error)) {
       error <- purrr::map_chr(names(ebody$detail$body$error), function(n) {
