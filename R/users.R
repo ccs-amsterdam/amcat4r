@@ -9,6 +9,11 @@ list_users <- function(credentials = NULL) {
 }
 
 #' Get information about a user
+#' @param user The user to get information on, or 'me' to get information on the current user
+#' @param credentials The credentials to use. If not given, uses cached login
+#'   information.
+#'
+#' @export
 get_user <- function(user="me", credentials = NULL) {
   request(credentials, c("users", user))
 }

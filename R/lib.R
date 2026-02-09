@@ -1,13 +1,13 @@
 pkg.env <- new.env()
 
 #' Helper function to get credentials from argument or pkg.env
+#' TODO: rename to get_token
 #' @noRd
 get_credentials = function(credentials = NULL) {
 
   if (is.null(credentials)) {
     if (!is.null(pkg.env$current_server)) {
       credentials = amcat_get_token(pkg.env$current_server)
-      credentials$host <- pkg.env$current_server
     } else {
       stop("Please use amcat_login() first")
     }
@@ -32,9 +32,9 @@ request_response <- function(credentials,
   # length != 1, already fixed on gh
   if (utils::packageVersion("httr2") <= "0.2.2") url <- make_path(url)
 
-  credentials <- get_credentials(credentials)
+  tokens <- get_credentials(credentials)
 
-  req <- httr2::request(credentials$host) |>
+  req <- httr2::request(tokens$host) |>
     httr2::req_url_path_append(url) |>
     httr2::req_method(method) |>
     httr2::req_error(
@@ -57,9 +57,14 @@ request_response <- function(credentials,
       httr2::req_body_json(body, auto_unbox = auto_unbox)
   }
 
-  if (credentials$authorization != "no_auth") {
+  if (tokens$authorization != "no_auth") {
+    if (package_version(tokens$api_version) >= "4.1") {
+      req <- req |> httr2::req_headers("X-API-Key"=tokens$api_key)
+
+    } else {
     req <- req |>
-      httr2::req_auth_bearer_token(credentials$access_token)
+      httr2::req_auth_bearer_token(tokens$access_token)
+    }
   }
 
   httr2::req_perform(req)
