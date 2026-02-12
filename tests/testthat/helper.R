@@ -10,7 +10,7 @@ amcat_test_index_fields = list(title = "text", text = "text", date="date", keywo
 setup_test <- function(create_index=TRUE) {
   message(amcat_test_server)
   skip_if(!ping(amcat_test_server))
-  amcat_login(amcat_test_server,api_key = amcat_test_apikey)
+  amcat_login(amcat_test_server,api_key = amcat_test_apikey, cache = 2, test_login = FALSE)
   if (index_exists(amcat_test_index)) delete_index(amcat_test_index)
   if (create_index) {
     create_index(amcat_test_index)

@@ -114,7 +114,7 @@ tokens_cache <- function(tokens, cache) {
       httr2::secret_write_rds(tokens, path = cache, key = I(rlang::hash(tokens$host)))
     } else if (cache_choice == 2L) {
       # Cache token in memory
-      rlang::env_poke(pkg.env, nm = rlang::hash(server), tokens)
+      rlang::env_poke(pkg.env, nm = rlang::hash(tokens$host), tokens)
     }
   }
   return(tokens)
