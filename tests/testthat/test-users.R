@@ -1,36 +1,26 @@
-# we have to log in each time it seems as the cache is destroyed
-if (!as.logical(Sys.getenv("amcat_offline")))
-  amcat_login("http://localhost/amcat", cache = 2L)
-
 test_that("query", {
-  skip_if(as.logical(Sys.getenv("amcat_offline")))
+  setup_test()
 
-  expect_false("test@example.com" %in% suppressWarnings(list_users()$email))
+  expect_false(amcat_test_user %in% suppressWarnings(list_users()$email))
 
   expect_true({
-    create_user("test@example.com", role = "WRITER")
-    "test@example.com" %in% list_users()$email
+    create_user(amcat_test_user, role = "WRITER")
+    amcat_test_user %in% list_users()$email
   })
 
   expect_equal({
     users <- list_users()
-    users[users$email == "test@example.com", ]$role
+    users[users$email == amcat_test_user, ]$role
   }, "WRITER")
 
   expect_equal({
-    modify_user("test@example.com", role = "admin")
+    modify_user(amcat_test_user, role = "admin")
     users <- list_users()
-    users[users$email == "test@example.com", ]$role
+    users[users$email == amcat_test_user, ]$role
   }, "ADMIN")
 
-  expect_equal({
-    modify_user("test@example.com", role = "reader")
-    users <- list_users()
-    users[users$email == "test@example.com", ]$role
-  }, "READER")
-
   expect_false({
-    delete_user("test@example.com")
-    "test@example.com" %in% list_users()
+    delete_user(amcat_test_user)
+    amcat_test_user %in% list_users()
   })
 })

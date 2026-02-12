@@ -48,8 +48,7 @@ amcat_login <- function(server,
                         test_login = TRUE) {
   config <- get_config(server)
 
-  tokens <- if (force_refresh) NULL else amcat4r:::amcat_get_token(server, warn = FALSE)
-
+  tokens <- if (force_refresh) NULL else amcat_get_token(server, warn = FALSE)
 
   # Deal with API version-dependent authentication
   if (is.null(config$api_version)) {
@@ -71,13 +70,11 @@ amcat_login <- function(server,
 
   if (test_login) {
     u <- get_user("me", credentials=tokens)
-    cli::cli_alert_success("Logged on to {.url {tokens$host}} as {.email {u$email}} ({.strong {u$role}})")
+    cli::cli_alert_success("Logged on to {.url {tokens$host}} ({.field v{tokens$api_version}}) as {.email {u$email}} ({.strong {u$role}})")
   }
 
   invisible(tokens)
 }
-
-
 
 
 
@@ -125,7 +122,9 @@ tokens_cache <- function(tokens, cache) {
 
 # internal function to check tokens
 amcat_token_check <- function(tokens, server) {
-  if (!is.null(tokens$expires_at) && tokens$expires_at < as.numeric(Sys.time() + 10)) {
+  if (package_version(tokens$api_version) < "4.1" &&
+      !is.null(tokens$expires_at) &&
+      tokens$expires_at < as.numeric(Sys.time() + 10)) {
     tokens <- amcat_token_refresh(tokens, server)
   }
   return(tokens)
@@ -168,5 +167,11 @@ amcat_get_token <- function(server = NULL, warn = TRUE) {
     }
   }
 
-  return(amcat_token_check(tokens, server))
+  if (is.null(tokens$api_version)) {
+    # This is from an older client, so cannot re-use token
+    message("Discarding pre-4.1 authentication tokens")
+    tokens <- NULL
+  }
+
+   amcat_token_check(tokens, server)
 }

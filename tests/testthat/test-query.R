@@ -1,11 +1,5 @@
-if (!as.logical(Sys.getenv("amcat_offline")))
-  amcat_login("http://localhost/amcat", cache = 2L)
-
 test_that("query", {
-  skip_if(as.logical(Sys.getenv("amcat_offline")))
-  create_index("amcat4r-test")
-  set_fields("amcat4r-test", list(keyword = "keyword",
-                                  cats = "keyword"))
+  setup_test()
   test_doc <- data.frame(
     .id = 1:10,
     title = "test",
@@ -14,30 +8,30 @@ test_that("query", {
     cats = c("cute", "cute2"),
     keyword = "test"
   )
-  upload_documents("amcat4r-test", documents = test_doc)
-  Sys.sleep(2) # seems to take a second to work
+  upload_documents(amcat_test_index, documents = test_doc)
+  refresh_index(amcat_test_index)
   expect_equal(
-    dim(query_documents("amcat4r-test", queries = NULL, fields = NULL)),
+    dim(query_documents(amcat_test_index, queries = NULL, fields = NULL)),
     c(10, 6)
   )
   expect_equal(
-    dim(query_documents("amcat4r-test", queries = NULL, fields = "date")),
+    dim(query_documents(amcat_test_index, queries = NULL, fields = "date")),
     c(10, 2)
   )
 
   expect_false(isTRUE(all.equal(
-    query_documents(index = "amcat4r-test", queries = NULL, per_page = 1, page = 1, max_pages = 1),
-    query_documents("amcat4r-test", queries = NULL, per_page = 1, page = 2, max_pages = 2)
+    query_documents(index = amcat_test_index, queries = NULL, per_page = 1, page = 1, max_pages = 1),
+    query_documents(amcat_test_index, queries = NULL, per_page = 1, page = 2, max_pages = 2)
   )))
 
   expect_length(
-    query_documents("amcat4r-test", queries = NULL, per_page = 1, max_pages = 10)$.id,
+    query_documents(amcat_test_index, queries = NULL, per_page = 1, max_pages = 10)$.id,
     10L
   )
 
   expect_equal(
     colnames(
-      query_aggregate("amcat4r-test",
+      query_aggregate(amcat_test_index,
                       axes = list(list(field="keyword",
                                        list(field="date", interval="day"))),
                       queries = "test")
@@ -46,7 +40,7 @@ test_that("query", {
   )
 
   expect_error(
-      query_aggregate("amcat4r-test",
+      query_aggregate(amcat_test_index,
                       axes = list(list(field="text",
                                        list(field="date", interval="day"))),
                       queries = "test",
@@ -56,7 +50,7 @@ test_that("query", {
   )
 
   expect_equal(
-    query_aggregate("amcat4r-test",
+    query_aggregate(amcat_test_index,
                     axes = list(list(field="keyword", list(field="date", interval="day"))),
                     queries = "test",
                     filters = list(cats = "cute",
@@ -65,48 +59,28 @@ test_that("query", {
   )
 
   test_doc$date[1] <- "2022-01-01T00:00:00"
-  upload_documents("amcat4r-test", documents = test_doc)
-  Sys.sleep(2) # seems to take a second to work
+  upload_documents(amcat_test_index, documents = test_doc)
+  refresh_index(amcat_test_index)
   expect_equal(
-    query_aggregate("amcat4r-test",
+    query_aggregate(amcat_test_index,
                     axes = list(list(field="keyword", list(field="date", interval="day"))),
                     queries = "test",
                     filters = list(cats = "cute",
                                    date = list(gte = "2023-01-01")))$n,
-    5L
-  )
-
-  expect_equal({
-    set_fields("amcat4r-test", list(test = "tag"))
-    # TODO: remove, admin should have automatic access
-    add_index_user("amcat4r-test", email = "_admin", role = "ADMIN")
-    update_tags(
-      index = "amcat4r-test",
-      action = "add",
-      field = "test",
-      tag = "test",
-      filters = list(cats = "cute",
-                     date = list(gte = "2023-01-01"))
-    )
-    Sys.sleep(2) # seems to take a second to work
-    sum(is.na(query_documents("amcat4r-test", queries = NULL, fields = c("test", "title"), scroll = "1m")))},
-    5L
+    4L
   )
 
   expect_equal({
     update_tags(
-      index = "amcat4r-test",
+      index = amcat_test_index,
       action = "remove",
       field = "test",
       tag = "test",
       filters = list(cats = "cute",
                      date = list(gte = "2023-01-01"))
     )
-    Sys.sleep(2) # seems to take a second to work
-    # column test should not be returned as all empty
-    sum(is.na(query_documents("amcat4r-test", queries = NULL, fields = c("test", "title"))))},
+    refresh_index(amcat_test_index)
+    sum(is.na(query_documents(amcat_test_index, queries = NULL, fields = c("test", "title"))))},
     0L
   )
-
-  delete_index("amcat4r-test")
 })

@@ -5,7 +5,12 @@ auth_4_0 <- function(tokens, server, config, token_refresh) {
     tokens$authorization <- "no_auth"
     # use "httr2_token" class for a unified printing
     class(tokens) <- c("amcat4_token", "httr2_token")
-  } else if (is.null(tokens)) {
+  } else {
+    # Existing token, nothing todo.
+    # Or perhaps force a refresh to check it?
+  }
+
+  if (is.null(tokens)) {
     tokens <- get_middlecat_token(server = server,
                                   token_refresh = token_refresh,
                                   middlecat = config[["middlecat_url"]])

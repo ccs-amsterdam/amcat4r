@@ -1,12 +1,6 @@
 # Internal functions for dealing with AmCAT 4.1 auth
 
 auth_4_1 <- function(tokens, server, config, api_key) {
-  if (is.null(tokens$api_version)) {
-    # This is from an older client, so cannot re-use token
-    message("Discarding pre-4.1 authentication tokens")
-    tokens <- NULL
-  }
-
   if (config$authorization == "no_auth") {
     # Nothing to do really
   } else if (!is.null(api_key) && !is.na(api_key) && api_key != "") {

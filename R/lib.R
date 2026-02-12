@@ -74,8 +74,10 @@ request_response <- function(credentials,
 #' @noRd
 request <- function(...) {
   resp = request_response(...)
-  if (length(resp[["body"]]) > 0) {
-    return(httr2::resp_body_json(resp))
+  if (httr2::resp_status(resp) == 404) {
+    invisible(NULL)
+  } else if (length(resp[["body"]]) > 0) {
+    httr2::resp_body_json(resp)
   } else {
     invisible(NULL)
   }
@@ -104,17 +106,13 @@ amcat_error_body <- function(resp) {
       if (is.list(resp)) resp <- jsonlite::toJSON(resp)
       return(resp)
     }
-
-
-    if (purrr::pluck_exists(ebody, "message")) {
-      return(pluck_safe(ebody, "message"))
-    } else if (is.list(ebody) && is.list(ebody$detail) && is.list(ebody$detail$body) && is.list(ebody$detail$body$error)) {
+    if (is.list(ebody) && is.list(ebody$detail) && is.list(ebody$detail$body) && is.list(ebody$detail$body$error)) {
       error <- purrr::map_chr(names(ebody$detail$body$error), function(n) {
         paste0(tools::toTitleCase(n), ": ", ebody$detail$body$error[[n]])
       })
     } else if (purrr::pluck_exists(ebody, "detail")) {
       return(pluck_safe(ebody, "detail"))
-    }else {
+    } else if (purrr::pluck_exists(ebody, "detail")) {
       # TODO: find a cleaner way to parse this
       msg <- try(ebody[["detail"]][[1]][["msg"]], silent = TRUE)
       if (methods::is(msg, "try-error")) msg <- NULL
@@ -122,7 +120,9 @@ amcat_error_body <- function(resp) {
       if (methods::is(detail, "try-error")) detail <- toString(ebody[["detail"]])
       error <- paste0(msg, detail, .sep = ": ")
     }
-
+  else if (purrr::pluck_exists(ebody, "message")) {
+      return(pluck_safe(ebody, "message"))
+    }
   } else {
     # if no further information is returned, revert to httr2 default by
     # returning NULL

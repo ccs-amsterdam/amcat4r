@@ -111,7 +111,7 @@ query_documents <- function(index,
   body <- list(
     queries = queries, fields = fields, filters = filters,
     scroll = scroll, per_page = per_page, page = page
-  )
+  ) |> Filter(f=Negate(is.null))
   if (verbose) {
     new_results <- results <- numeric()
     cli::cli_progress_step("Retrieved {nrow(new_results)} results from page {length(results)}",
