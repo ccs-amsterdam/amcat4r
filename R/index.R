@@ -42,7 +42,7 @@ index_exists <- function(index, credentials = NULL) {
 #' }
 #' @export
 list_indexes <- function(credentials = NULL) {
-  request(credentials, "index") |> dplyr::bind_rows()
+  request(credentials, "index/") |> dplyr::bind_rows()
 }
 
 

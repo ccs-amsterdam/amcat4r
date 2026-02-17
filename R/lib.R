@@ -66,7 +66,6 @@ request_response <- function(credentials,
       httr2::req_auth_bearer_token(tokens$access_token)
     }
   }
-
   httr2::req_perform(req)
 }
 

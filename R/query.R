@@ -178,7 +178,7 @@ query_documents <- function(index,
 #'                                date = list(gte = "1900-01-01")))
 #' }
 #' @export
-query_aggregate <- function(index, axes,
+query_aggregate <- function(index, axes=NULL,
                             queries = NULL,
                             filters = NULL,
                             credentials = NULL) {
