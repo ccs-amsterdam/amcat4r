@@ -4,20 +4,36 @@
 \alias{amcat_login}
 \title{Authenticate to an AmCAT instance}
 \usage{
-amcat_login(server, token_refresh = FALSE, force_refresh = FALSE, cache = NULL)
+amcat_login(
+  server,
+  api_key = NULL,
+  token_refresh = FALSE,
+  force_refresh = FALSE,
+  cache = NULL,
+  test_login = TRUE
+)
 }
 \arguments{
 \item{server}{URL of the AmCAT instance}
 
-\item{token_refresh}{Whether to enable refresh token rotation (see details).}
+\item{api_key}{The API Key to use for authentication (API version 4.1+)}
 
-\item{force_refresh}{Overwrite existing cached authentications.}
+\item{token_refresh}{Whether to enable refresh token rotation (see details; for API version 4.0).}
+
+\item{force_refresh}{Overwrite existing cached authentication}
 
 \item{cache}{select where tokens should be cached to suppress the user menu.
 1 means to store on disk, 2 means to store only in memory.}
+
+\item{test_login}{If TRUE (default), fetch /users/me to test succesful login.}
 }
 \value{
-an amcat4_token object
+an \code{amcat4_token} object, which besides the token itself will contain:
+\itemize{
+  \item \strong{host}: The base URL of the AmCAT server.
+  \item \strong{api_version}: Character string of the API version.
+  \item \strong{authorization}: The authorization configuration
+}
 }
 \description{
 Authenticate to an AmCAT instance
@@ -32,12 +48,16 @@ If you select to store your tokens on disk in the interactive menu, they
 are stored in the location indicated by
 \code{rappdirs::user_cache_dir("httr2")}.
 
-The function needs to open a browser, which will usually only work in an
-interactive session. However, you can save the returned object in an rds
-file (with \code{saveRDS()}) and tell amcat4r where to look for it:
-\code{options(amcat4r_token_cache = "path/to/location/tokens.rds")}. If you
-still have issues in an interactive session, check \link[utils]{browseURL}
-to see if you can set a browser manually.
+  The function needs to open a browser, which will usually only work in an
+  interactive session. However, you can save the returned object in an rds
+  file (with \code{saveRDS()}) and tell amcat4r where to look for it:
+  \code{options(amcat4r_token_cache = "path/to/location/tokens.rds")}. If you
+  still have issues in an interactive session, check \link[utils]{browseURL}
+  to see if you can set a browser manually.
+
+  It returns an amcat4_token object, which contains a number of standard fields
+  (host, api_version, authorization) and fields depending on the authentication
+  method, currently api_token (for 4.1) and the httr2_token fields for 4.0
 }
 \examples{
 \dontrun{

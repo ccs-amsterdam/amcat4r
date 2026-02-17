@@ -1,13 +1,13 @@
 pkg.env <- new.env()
 
 #' Helper function to get credentials from argument or pkg.env
+#' TODO: rename to get_token
 #' @noRd
 get_credentials = function(credentials = NULL) {
 
   if (is.null(credentials)) {
     if (!is.null(pkg.env$current_server)) {
       credentials = amcat_get_token(pkg.env$current_server)
-      credentials$host <- pkg.env$current_server
     } else {
       stop("Please use amcat_login() first")
     }
@@ -32,9 +32,9 @@ request_response <- function(credentials,
   # length != 1, already fixed on gh
   if (utils::packageVersion("httr2") <= "0.2.2") url <- make_path(url)
 
-  credentials <- get_credentials(credentials)
+  tokens <- get_credentials(credentials)
 
-  req <- httr2::request(credentials$host) |>
+  req <- httr2::request(tokens$host) |>
     httr2::req_url_path_append(url) |>
     httr2::req_method(method) |>
     httr2::req_error(
@@ -57,11 +57,15 @@ request_response <- function(credentials,
       httr2::req_body_json(body, auto_unbox = auto_unbox)
   }
 
-  if (credentials$authorization != "no_auth") {
-    req <- req |>
-      httr2::req_auth_bearer_token(credentials$access_token)
-  }
+  if (tokens$authorization != "no_auth") {
+    if (package_version(tokens$api_version) >= "4.1") {
+      req <- req |> httr2::req_headers("X-API-Key"=tokens$api_key)
 
+    } else {
+    req <- req |>
+      httr2::req_auth_bearer_token(tokens$access_token)
+    }
+  }
   httr2::req_perform(req)
 }
 
@@ -69,8 +73,10 @@ request_response <- function(credentials,
 #' @noRd
 request <- function(...) {
   resp = request_response(...)
-  if (length(resp[["body"]]) > 0) {
-    return(httr2::resp_body_json(resp))
+  if (httr2::resp_status(resp) == 404) {
+    invisible(NULL)
+  } else if (length(resp[["body"]]) > 0) {
+    httr2::resp_body_json(resp)
   } else {
     invisible(NULL)
   }
@@ -111,7 +117,7 @@ amcat_error_body <- function(resp) {
       })
     } else if (purrr::pluck_exists(ebody, "detail")) {
       return(pluck_safe(ebody, "detail"))
-    }else {
+    } else if (purrr::pluck_exists(ebody, "detail")) {
       # TODO: find a cleaner way to parse this
       msg <- try(ebody[["detail"]][[1]][["msg"]], silent = TRUE)
       if (methods::is(msg, "try-error")) msg <- NULL
@@ -119,7 +125,9 @@ amcat_error_body <- function(resp) {
       if (methods::is(detail, "try-error")) detail <- toString(ebody[["detail"]])
       error <- paste0(msg, detail, .sep = ": ")
     }
-
+  else if (purrr::pluck_exists(ebody, "message")) {
+      return(pluck_safe(ebody, "message"))
+    }
   } else {
     # if no further information is returned, revert to httr2 default by
     # returning NULL
@@ -209,4 +217,3 @@ safe_bind_rows <- function(l) {
   }) |>
     dplyr::bind_rows()
 }
-

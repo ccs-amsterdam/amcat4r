@@ -112,10 +112,8 @@ query_documents <- function(index,
   if (length(fields) == 1) fields <- list(fields)
   body <- list(
     queries = queries, fields = fields, filters = filters,
-    scroll = scroll, per_page = per_page
-  )
-  if (!is.null(page)) body$page = page
-
+    scroll = scroll, per_page = per_page, page = page
+  ) |> Filter(f=Negate(is.null))
   if (verbose) {
     new_results <- results <- numeric()
     cli::cli_progress_step("Retrieved {nrow(new_results)} results from page {length(results)}",
@@ -182,7 +180,7 @@ query_documents <- function(index,
 #'                                date = list(gte = "1900-01-01")))
 #' }
 #' @export
-query_aggregate <- function(index, axes,
+query_aggregate <- function(index, axes=NULL,
                             queries = NULL,
                             filters = NULL,
                             credentials = NULL) {
@@ -292,5 +290,3 @@ update_by_query <- function(index, field, value, ids = NULL, queries = NULL, fil
   cli::cli_alert_success("Updated {res$updated} documents from index {index}")
   invisible(res)
 }
-
-

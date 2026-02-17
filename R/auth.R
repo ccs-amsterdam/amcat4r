@@ -1,10 +1,12 @@
 #' Authenticate to an AmCAT instance
 #'
 #' @param server URL of the AmCAT instance
-#' @param token_refresh Whether to enable refresh token rotation (see details).
-#' @param force_refresh Overwrite existing cached authentications.
+#' @param api_key The API Key to use for authentication (API version 4.1+)
+#' @param token_refresh Whether to enable refresh token rotation (see details; for API version 4.0).
+#' @param force_refresh Overwrite existing cached authentication
 #' @param cache select where tokens should be cached to suppress the user menu.
 #'   1 means to store on disk, 2 means to store only in memory.
+#' @param test_login If TRUE (default), fetch /users/me to test succesful login.
 #'
 #' @details Enabling refresh token rotation ensures added security as leaked
 #'   refresh tokens also become invalidated after a short while. It is currently
@@ -22,7 +24,16 @@
 #'   still have issues in an interactive session, check \link[utils]{browseURL}
 #'   to see if you can set a browser manually.
 #'
-#' @return an amcat4_token object
+#'   It returns an amcat4_token object, which contains a number of standard fields
+#'   (host, api_version, authorization) and fields depending on the authentication
+#'   method, currently api_token (for 4.1) and the httr2_token fields for 4.0
+#'
+#' @return an \code{amcat4_token} object, which besides the token itself will contain:
+#' \itemize{
+#'   \item \strong{host}: The base URL of the AmCAT server.
+#'   \item \strong{api_version}: Character string of the API version.
+#'   \item \strong{authorization}: The authorization configuration
+#' }
 #' @export
 #'
 #' @examples
@@ -30,74 +41,45 @@
 #'   amcat_login("https://middlecat.up.railway.app/api/demo_resource")
 #' }
 amcat_login <- function(server,
+                        api_key = NULL,
                         token_refresh = FALSE,
                         force_refresh = FALSE,
-                        cache = NULL) {
-
-  if (force_refresh) {
-    tokens <- NULL
-  } else {
-    tokens <- amcat_get_token(server, warn = FALSE)
-  }
-
+                        cache = NULL,
+                        test_login = TRUE) {
   config <- get_config(server)
-  if (is.null(config$api_version))
+
+  tokens <- if (force_refresh) NULL else amcat_get_token(server, warn = FALSE)
+
+  # Deal with API version-dependent authentication
+  if (is.null(config$api_version)) {
     stop(paste0("The server at ", server, " has API version < 4.0.11, ",
                 "please upgrade the server or use an older client to connect"))
-
-  if (config[["authorization"]] == "no_auth") {
-    cli::cli_inform(c("v" = "Authentication at {server} successful!"))
-    tokens$authorization <- "no_auth"
-    # use "httr2_token" class for a unified printing
-    class(tokens) <- c("amcat4_token", "httr2_token")
-  } else if (is.null(tokens)) {
-    tokens <- get_middlecat_token(server = server,
-                                  token_refresh = token_refresh,
-                                  middlecat = config[["middlecat_url"]])
+  } else if (package_version(config$api_version) >= "4.1") {
+    tokens <- auth_4_1(tokens, server, config=config, api_key=api_key)
+  } else {
+    tokens <- auth_4_0(tokens, server, config=config, token_refresh=token_refresh)
   }
 
-  tokens$authorization <- config[["authorization"]]
+  # Cache tokens and configuration
+  tokens$authorization <- config$authorization
+  tokens$api_version <- config$api_version
+  tokens$host <- server
+
   if (is.null(attr(tokens, "cache_choice"))) attr(tokens, "cache_choice") <- cache
-  tokens <- tokens_cache(tokens, server, cache)
+  tokens <- tokens_cache(tokens, cache)
+
+  if (test_login) {
+    u <- get_user("me", credentials=tokens)
+    cli::cli_alert_success("Logged on to {.url {tokens$host}} ({.field v{tokens$api_version}}) as {.email {u$email}} ({.strong {u$role}})")
+  }
+
   invisible(tokens)
 }
 
-# internal function to get a token from middlecat
-get_middlecat_token <- function(server,
-                                token_refresh = FALSE,
-                                middlecat) {
 
-  if (methods::is(getOption("browser"), "character")) {
-    if (getOption("browser") == "") {
-      cli::cli_abort(c("!" = "Authentication needs access to a browser. See ?amcat_login."))
-    }
-  }
-  cli::cli_progress_bar()
-  cli::cli_progress_step("Requesting a token at {server} using a {middlecat}")
-  client <- httr2::oauth_client(
-    id = "amcat4r",
-    token_url = glue::glue("{middlecat}/api/token")
-  )
-
-  tokens <- httr2::oauth_flow_auth_code(
-    client = client,
-    auth_url = glue::glue("{middlecat}/authorize"),
-    pkce = TRUE,
-    auth_params = list(
-      resource = server,
-      refresh_mode = ifelse(token_refresh, "refresh", "static"),
-      session_type = "api_key"
-    )
-  )
-
-  class(tokens) <- c("amcat4_token", class(tokens))
-  cli::cli_progress_step("Authentication at {server} successful!")
-  cli::cli_progress_done()
-  tokens
-}
 
 # internal function to cache tokens
-tokens_cache <- function(tokens, server, cache) {
+tokens_cache <- function(tokens, cache) {
 
   cache_choice <- cache
   if (is.null(cache_choice)) cache_choice <- attr(tokens, "cache_choice")
@@ -118,23 +100,21 @@ tokens_cache <- function(tokens, server, cache) {
 
   if (cache_choice < 3L) {
 
-    pkg.env$current_server <- server
+    pkg.env$current_server <- tokens$host
     pkg.env$authorization <- tokens$authorization
 
     if (cache_choice == 1L) {
-
+      # Write token tok disk
       cache <- getOption("amcat4r_token_cache")
       if (is.null(cache)) {
         cache <- file.path(rappdirs::user_cache_dir("httr2"),
-                           paste0(rlang::hash(server), "-token.rds.enc"))
+                           paste0(rlang::hash(tokens$host), "-token.rds.enc"))
         dir.create(dirname(cache), showWarnings = FALSE, recursive = TRUE)
       }
-      httr2::secret_write_rds(tokens, path = cache, key = I(rlang::hash(server)))
-
+      httr2::secret_write_rds(tokens, path = cache, key = I(rlang::hash(tokens$host)))
     } else if (cache_choice == 2L) {
-
-      rlang::env_poke(pkg.env, nm = rlang::hash(server), tokens)
-
+      # Cache token in memory
+      rlang::env_poke(pkg.env, nm = rlang::hash(tokens$host), tokens)
     }
   }
   return(tokens)
@@ -142,41 +122,14 @@ tokens_cache <- function(tokens, server, cache) {
 
 # internal function to check tokens
 amcat_token_check <- function(tokens, server) {
-  if (!is.null(tokens$expires_at) && tokens$expires_at < as.numeric(Sys.time() + 10)) {
+  if (package_version(tokens$api_version) < "4.1" &&
+      !is.null(tokens$expires_at) &&
+      tokens$expires_at < as.numeric(Sys.time() + 10)) {
     tokens <- amcat_token_refresh(tokens, server)
   }
   return(tokens)
 }
 
-# internal function to refresh tokens
-amcat_token_refresh <- function(tokens, server) {
-
-  cache_choice <- attr(tokens, "cache_choice")
-  authorization <- tokens$authorization
-  middlecat <- get_config(server)[["middlecat_url"]]
-  client <- httr2::oauth_client(
-    id = "amcat4r",
-    token_url = glue::glue("{middlecat}/api/token")
-  )
-
-  tokens <- httr2::oauth_flow_refresh(
-    client,
-    refresh_token = tokens$refresh_token,
-    scope = NULL,
-    token_params = list(
-      resource = server,
-      refresh_mode = tokens$refresh_mode,
-      session_type = "api_key"
-    )
-  )
-
-  class(tokens) <- c("amcat4_token", class(tokens))
-  attr(tokens, "cache_choice") <- cache_choice
-  tokens$authorization <- authorization
-  tokens <- tokens_cache(tokens, server, cache_choice)
-
-  return(tokens)
-}
 
 # internal function to retrieve config from an amcat server
 get_config <- function(server) {
@@ -199,7 +152,8 @@ amcat_get_token <- function(server = NULL, warn = TRUE) {
   # check memory cache first
   if (rlang::env_has(pkg.env, rlang::hash(server))) {
     tokens <- rlang::env_get(pkg.env, rlang::hash(server))
-  } else if (!is.null(getOption("amcat4r_token_cache"))) { # check option next
+  } else if (!is.null(getOption("amcat4r_
+                                token_cache"))) { # check option next
     tokens <- httr2::secret_read_rds(path = getOption("amcat4r_token_cache"),
                                      key = I(rlang::hash(server)))
   } else { # lastly check disk cache
@@ -213,5 +167,11 @@ amcat_get_token <- function(server = NULL, warn = TRUE) {
     }
   }
 
-  return(amcat_token_check(tokens, server))
+  if (is.null(tokens$api_version)) {
+    # This is from an older client, so cannot re-use token
+    message("Discarding pre-4.1 authentication tokens")
+    tokens <- NULL
+  }
+
+   amcat_token_check(tokens, server)
 }

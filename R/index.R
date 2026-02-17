@@ -1,3 +1,35 @@
+#' Get a single index
+#'
+#' @param credentials The credentials to use. If not given, uses last login
+#'   information.
+#' @param index name of the index
+#' @return a list with details about this index, or NULL if it does not exist
+#' @examples \dontrun{
+#' get_index("my_index")
+#' }
+#' @export
+get_index <- function(index, credentials = NULL) {
+  request(credentials,
+          c("index", index),
+          method = "GET",
+          error_on_404 = FALSE)
+}
+
+#' Check if an index exists
+#'
+#' Convenience function that calls !is.null(get_index(...))
+#' @param credentials The credentials to use. If not given, uses last login
+#'   information.
+#' @param index name of the index
+#' @return a list with details about this index, or NULL if it does not exist
+#' @examples \dontrun{
+#' index_exists("my_index")
+#' }
+#' @export
+index_exists <- function(index, credentials = NULL) {
+  !is.null(get_index(index, credentials = credentials))
+}
+
 #' List the indexes on this server
 #'
 #' @param credentials The credentials to use. If not given, uses last login
@@ -63,12 +95,18 @@ delete_index <- function(index, credentials = NULL) {
 create_index <- function(index,
                          name = index,
                          description = NULL,
-                         create_fields =NULL,
+                         create_fields = NULL,
                          guest_role = NULL,
                          credentials = NULL) {
-  if (!is.null(guest_role)) guest_role <- toupper(guest_role)
-  body <- list(id = index, name = name, description = description, guest_role = guest_role)
-  resp <- request(credentials, "index/", body = body, "POST")
+  if (!is.null(guest_role))
+    guest_role <- toupper(guest_role)
+  body <- list(
+    id = index,
+    name = name,
+    description = description,
+    guest_role = guest_role
+  )
+  resp <- request(credentials, "index", body = body, "POST")
   if (!is.null(create_fields)) {
     set_fields(index, create_fields)
   }
@@ -78,10 +116,17 @@ create_index <- function(index,
 
 #' @describeIn create_index Modify an index
 #' @export
-modify_index <- function(index, name = index, description = NULL, guest_role = NULL, credentials = NULL) {
-  if (!is.null(guest_role)) guest_role <- toupper(guest_role)
-  body <- list(name = name, description = description, guest_role = guest_role)
-  invisible(request(credentials, c("index/", index), body = body, "PUT"))
+modify_index <- function(index,
+                         name = index,
+                         description = NULL,
+                         guest_role = NULL,
+                         credentials = NULL) {
+  if (!is.null(guest_role))
+    guest_role <- toupper(guest_role)
+  body <- list(name = name,
+               description = description,
+               guest_role = guest_role)
+  invisible(request(credentials, c("index", index), body = body, "PUT"))
 }
 
 
@@ -122,41 +167,55 @@ upload_documents <- function(index,
                              max_tries = 5L,
                              verbose = TRUE,
                              credentials = NULL) {
-  if (".id" %in% colnames(documents)) colnames(documents) <- gsub(".id", "_id", colnames(documents), fixed = TRUE)
+  if (".id" %in% colnames(documents))
+    colnames(documents) <- gsub(".id", "_id", colnames(documents), fixed = TRUE)
   # chunk uploads
   rows <- seq_len(nrow(documents))
   chunks <- split(rows, ceiling(seq_along(rows) / chunk_size))
-  if (verbose & length(chunks) > 1L) cli::cli_progress_bar("Uploading", total = length(chunks))
-  successes <- 0
-  failures <- 0
+  if (verbose &
+      length(chunks) > 1L)
+    cli::cli_progress_bar("Uploading", total = length(chunks))
+  successes = 0
+  failures = list()
 
   for (r in chunks) {
-    if (verbose & length(chunks) > 1L) cli::cli_progress_update()
+    if (verbose & length(chunks) > 1L)
+      cli::cli_progress_update()
     body <- list(documents = documents[r, ])
-    if (!is.null(columns)) body$columns <- lapply(columns, jsonlite::unbox)
-    res <- request(credentials, c("index", index, "documents"), "POST", body, max_tries = max_tries, auto_unbox = FALSE)
+    if (!is.null(columns))
+      body$columns <- lapply(columns, jsonlite::unbox)
+    res <- request(
+      credentials,
+      c("index", index, "documents"),
+      "POST",
+      body,
+      max_tries = max_tries,
+      auto_unbox = FALSE
+    )
     successes <- successes + res$successes
-    if (!is.numeric(res$failures)) {
-      failures <- failures + length(res$failures)
-      for (failure in res$failures) {
-        message <- purrr::pluck(failure, "create", "error", "reason", .default = NULL)
-        if (is.null(message)) message <- failure
+    failures = c(failures, res$failures)
+    for (failure in res$failures) {
+      message = failure$create$error$reason
+      if (is.null(message))
+        message = failure
         cli::cli_alert_info(message)
-      }
-    } else {
-      failures <- failures + res$failures
     }
   }
 
-  if (verbose & length(chunks) > 1L) cli::cli_progress_done()
-  if (failures > 0) {
+  if (verbose & length(chunks) > 1L)
+    cli::cli_progress_done()
+  if (length(failures) > 0) {
     if (successes == 0) {
-      cli::cli_alert_danger("All documents failed to upload. See function result and/or messages above for details")
+      cli::cli_alert_danger(
+        "All documents failed to upload. See function result and/or messages above for details."
+      )
     } else {
-      cli::cli_alert_warning("Succesfully uploaded {successes} documents; {failures} failures, see function result and/or messages above for details")
+      cli::cli_alert_info(
+        "Succesfully uploaded {.val {successes}} document{s?}, {.err {length(failures)}} failure{?s}."
+      )
     }
   } else {
-    cli::cli_alert_success("Succesfully uploaded {successes} documents!")
+    cli::cli_alert_success("Successfully uploaded {successes} document{?s}!")
   }
 
   invisible(res)
@@ -176,11 +235,17 @@ update_documents <- function(index,
                              ids = NULL,
                              documents,
                              credentials = NULL) {
-  if (is.null(ids) && ".id" %in% colnames(documents)) ids <- documents[[".id"]]
-  if (is.null(ids)) stop("id is required either in the id or documents argument")
-  documents <- documents[,colnames(documents) != ".id", drop = FALSE]
+  if (is.null(ids) &&
+      ".id" %in% colnames(documents))
+    ids <- documents[[".id"]]
+  if (is.null(ids))
+    stop("id is required either in the id or documents argument")
+  documents <- documents[, colnames(documents) != ".id", drop = FALSE]
   for (i in seq_along(ids)) {
-    request(credentials, c("index", index, "documents", ids[i]), "PUT", body = as.list(documents[i, , drop = FALSE])) |>
+    request(credentials,
+            c("index", index, "documents", ids[i]),
+            "PUT",
+            body = as.list(documents[i, , drop = FALSE])) |>
       invisible()
   }
 }
@@ -194,10 +259,11 @@ update_documents <- function(index,
 #'   information.
 #'
 #' @export
-delete_documents <- function(index,
-                             docid,
-                             credentials = NULL) {
-  invisible(lapply(docid, function(id) request(credentials, c("index", index, "documents", id), "DELETE")))
+delete_documents <- function(index, docid, credentials = NULL) {
+  invisible(lapply(docid, function(id)
+    request(
+      credentials, c("index", index, "documents", id), "DELETE"
+    )))
 }
 
 
@@ -282,7 +348,12 @@ refresh_index <- function(index, credentials = NULL) {
 #' @export
 #' @md
 set_fields <- function(index, fields, credentials = NULL) {
-  invisible(request(credentials, c("index", index, "fields"), "POST", body = as.list(fields)))
+  invisible(request(
+    credentials,
+    c("index", index, "fields"),
+    "POST",
+    body = as.list(fields)
+  ))
 }
 
 
@@ -294,12 +365,14 @@ set_fields <- function(index, fields, credentials = NULL) {
 get_fields <- function(index, credentials = NULL) {
   res <- request(credentials, c("index", index, "fields"))
   purrr::map(names(res), function(f) {
-    tibble::tibble(name = f,
-                   type = purrr::pluck(res[[f]], "type"),
-                   elastic_type = purrr::pluck(res[[f]], "elastic_type"),
-                   identifier = purrr::pluck(res[[f]], "identifier"),
-                   metareader = list(purrr::pluck(res[[f]], "metareader")),
-                   client_settings = list(purrr::pluck(res[[f]], "client_settings")))
+    tibble::tibble(
+      name = f,
+      type = purrr::pluck(res[[f]], "type"),
+      elastic_type = purrr::pluck(res[[f]], "elastic_type"),
+      identifier = purrr::pluck(res[[f]], "identifier"),
+      metareader = list(purrr::pluck(res[[f]], "metareader")),
+      client_settings = list(purrr::pluck(res[[f]], "client_settings"))
+    )
   }) |>
     purrr::list_rbind()
 }
@@ -315,8 +388,13 @@ get_fields <- function(index, credentials = NULL) {
 #' @returns A tibble with one row containing the requested fields
 #' @export
 get_document <- function(index, doc_id, fields, credentials = NULL) {
-  res <- request(credentials, c("index", index, "documents", doc_id), query=list(fields=fields), query.multi="comma")
-  tibble::as_tibble(res) |> tibble::add_column(.id=doc_id, .before=1)
+  res <- request(
+    credentials,
+    c("index", index, "documents", doc_id),
+    query = list(fields = fields),
+    query.multi = "comma"
+  )
+  tibble::as_tibble(res) |> tibble::add_column(.id = doc_id, .before = 1)
 }
 
 #' Retrieve multiple documents using a purrr map over get_document
@@ -329,9 +407,7 @@ get_document <- function(index, doc_id, fields, credentials = NULL) {
 #' @returns A tibble with one row containing the requested fields
 #' @export
 get_documents <- function(index, doc_ids, fields, credentials = NULL, ...) {
-  purrr::map(doc_ids, function(doc_id) get_document(index, doc_id, fields, credentials), ...) |>
+  purrr::map(doc_ids, function(doc_id)
+    get_document(index, doc_id, fields, credentials), ...) |>
     purrr::list_rbind()
 }
-
-
-

@@ -4,15 +4,15 @@ Title: Controlling amcat4 from R
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 Version: 4.0.16.9000
-Authors@R: 
-    c(person(given = "Wouter", 
-             family = "van Atteveldt", 
-             email = "wouter@vanatteveldt.com", 
+Authors@R:
+    c(person(given = "Wouter",
+             family = "van Atteveldt",
+             email = "wouter@vanatteveldt.com",
              role = c("aut", "cre"),
              comment = c(ORCID = "0000-0003-1237-538X")),
       person(given = "Johannes B.",
              family = "Gruber",
-             email = "JohannesB.Gruber@gmail.com", 
+             email = "JohannesB.Gruber@gmail.com",
              role = c("aut", "ctb"),
              comment = c(ORCID = "0000-0001-9177-1772")))
 Depends:
@@ -38,7 +38,7 @@ Suggests:
     rstudioapi,
     testthat,
     withr
-Remotes: 
+Remotes:
     JBGruber/dockr
 License: MIT + file LICENSE
 Encoding: UTF-8
