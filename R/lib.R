@@ -202,18 +202,31 @@ ping <- function(server) {
 }
 
 
+# Given a list of tibbles, ensure any column that is a list in ANY tibble
+# is converted to a list column in ALL tibbles (so bind_rows won't fail).
+#' @noRd
+normalize_list_cols <- function(tbls) {
+  list_cols <- tbls |>
+    purrr::map(function(tbl) names(tbl)[purrr::map_lgl(tbl, is.list)]) |>
+    purrr::reduce(union, .init = character())
+  purrr::map(tbls, function(tbl) {
+    for (col in intersect(list_cols, names(tbl))) {
+      tbl[[col]] <- as.list(tbl[[col]])
+    }
+    tbl
+  })
+}
+
 #' Helper function to safely turn results into a tibble without unnesting list fields
 #' @noRd
 safe_bind_rows <- function(l) {
-  purrr::map(l, function(tbl) {
-    purrr::map(tbl, function(c) {
-      if (is.list(c) & length(c) > 1) {
-        return(list(c))
-      } else {
-        return(c)
-      }
+  tbls <- purrr::map(l, function(tbl) {
+    purrr::map(tbl, function(col) {
+      if (is.null(col)) NA
+      else if (is.list(col) && length(col) > 1) list(col)
+      else col
     }) |>
       tibble::as_tibble()
-  }) |>
-    dplyr::bind_rows()
+  })
+  dplyr::bind_rows(normalize_list_cols(tbls))
 }

@@ -6,7 +6,7 @@
 \usage{
 query_aggregate(
   index,
-  axes,
+  axes = NULL,
   queries = NULL,
   filters = NULL,
   credentials = NULL

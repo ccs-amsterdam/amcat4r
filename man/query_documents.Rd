@@ -13,7 +13,7 @@ query_documents(
   max_pages = 1,
   page = NULL,
   merge_tags = ";",
-  scroll = NULL,
+  scroll = "5m",
   verbose = TRUE,
   credentials = NULL
 )

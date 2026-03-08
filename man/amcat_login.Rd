@@ -30,9 +30,9 @@ amcat_login(
 \value{
 an \code{amcat4_token} object, which besides the token itself will contain:
 \itemize{
-  \item \strong{host}: The base URL of the AmCAT server.
-  \item \strong{api_version}: Character string of the API version.
-  \item \strong{authorization}: The authorization configuration
+\item \strong{host}: The base URL of the AmCAT server.
+\item \strong{api_version}: Character string of the API version.
+\item \strong{authorization}: The authorization configuration
 }
 }
 \description{
@@ -48,16 +48,16 @@ If you select to store your tokens on disk in the interactive menu, they
 are stored in the location indicated by
 \code{rappdirs::user_cache_dir("httr2")}.
 
-  The function needs to open a browser, which will usually only work in an
-  interactive session. However, you can save the returned object in an rds
-  file (with \code{saveRDS()}) and tell amcat4r where to look for it:
-  \code{options(amcat4r_token_cache = "path/to/location/tokens.rds")}. If you
-  still have issues in an interactive session, check \link[utils]{browseURL}
-  to see if you can set a browser manually.
+The function needs to open a browser, which will usually only work in an
+interactive session. However, you can save the returned object in an rds
+file (with \code{saveRDS()}) and tell amcat4r where to look for it:
+\code{options(amcat4r_token_cache = "path/to/location/tokens.rds")}. If you
+still have issues in an interactive session, check \link[utils]{browseURL}
+to see if you can set a browser manually.
 
-  It returns an amcat4_token object, which contains a number of standard fields
-  (host, api_version, authorization) and fields depending on the authentication
-  method, currently api_token (for 4.1) and the httr2_token fields for 4.0
+It returns an amcat4_token object, which contains a number of standard fields
+(host, api_version, authorization) and fields depending on the authentication
+method, currently api_token (for 4.1) and the httr2_token fields for 4.0
 }
 \examples{
 \dontrun{

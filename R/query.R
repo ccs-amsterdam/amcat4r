@@ -154,7 +154,7 @@ query_documents <- function(index,
     }
   }
 
-  d <- dplyr::bind_rows(results)
+  d <- dplyr::bind_rows(normalize_list_cols(results))
   if ("_id" %in% colnames(d)) {
     d <- dplyr::rename(d, .id = "_id")
     class(d$.id) <- c("id_col", class(d$.id))

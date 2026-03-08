@@ -108,3 +108,51 @@ test_that("fields", {
   }, list(4L, 6L, type = "keyword"))
 
 })
+
+test_that("reindex functions work", {
+  setup_test()
+  dest <- "amcat4r_testthat_testindex2"
+  if (index_exists(dest)) delete_index(dest)
+
+  upload_documents(amcat_test_index, data.frame(
+    .id = "1", title = "hello", text = "world",
+    date = "2024-01-01T00:00:00", keyword = "kw",
+    stringsAsFactors = FALSE
+  ))
+  refresh_index(amcat_test_index)
+
+  # Basic reindex to new index (no field changes)
+  expect_no_error(reindex(amcat_test_index, dest))
+  expect_true(index_exists(dest))
+  delete_index(dest)
+
+  # Reindex with field rename — dest pre-configured with renamed field
+  expect_no_error(reindex(amcat_test_index, dest,
+    fields = list(keyword = list(rename = "tag_field"))))
+  dest_fields <- get_fields(dest)
+  expect_true("tag_field" %in% dest_fields$name)
+  expect_false("keyword" %in% dest_fields$name)
+  delete_index(dest)
+
+  # Reindex with field exclusion
+  expect_no_error(reindex(amcat_test_index, dest,
+    fields = list(text = list(exclude = TRUE))))
+  dest_fields <- get_fields(dest)
+  expect_false("text" %in% dest_fields$name)
+  delete_index(dest)
+
+  # Reindex with type change
+  expect_no_error(reindex(amcat_test_index, dest,
+    fields = list(keyword = list(type = "tag"))))
+  dest_fields <- get_fields(dest)
+  expect_equal(dest_fields[dest_fields$name == "keyword", "type"], "tag")
+  delete_index(dest)
+
+  # Reindex to existing destination (no error, fields still synced)
+  create_index(dest)
+  expect_no_error(reindex(amcat_test_index, dest,
+    fields = list(keyword = list(rename = "tag_field"))))
+  dest_fields <- get_fields(dest)
+  expect_true("tag_field" %in% dest_fields$name)
+  delete_index(dest)
+})

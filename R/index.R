@@ -324,6 +324,77 @@ refresh_index <- function(index, credentials = NULL) {
 }
 
 
+#' Post a reindex request to the API
+#'
+#' Low-level wrapper around the reindex endpoint. For most use cases, use
+#' \code{\link{reindex}} instead.
+#'
+#' @param index The source index name
+#' @param destination The destination index name
+#' @param field_options Optional named list of per-field options (rename/exclude/type)
+#' @param queries Optional list of query strings to filter documents
+#' @param filters Optional list of filters to apply during reindex
+#' @param credentials The credentials to use. If not given, uses last login information
+#' @keywords internal
+#' @export
+post_reindex <- function(index, destination, field_options = NULL,
+                         queries = NULL, filters = NULL, credentials = NULL) {
+  body <- list(
+    destination = destination,
+    queries = queries,
+    filters = filters,
+    field_options = field_options
+  )
+  invisible(request(credentials, c("index", index, "reindex"), "POST", body = body))
+}
+
+
+#' Reindex documents to a destination index
+#'
+#' Reindexes documents from \code{index} to \code{destination}. If the
+#' destination does not exist it is created. Field changes are specified via
+#' \code{fields}: any field not mentioned is carried over from the source
+#' unchanged.
+#'
+#' @param index The source index name
+#' @param destination The destination index name
+#' @param fields Optional named list of per-field changes. Each element is a
+#'   named list with any of: \code{rename} (new field name), \code{exclude}
+#'   (logical, drop field), \code{type} (new AmCAT field type string).
+#'   E.g. \code{list(old_field=list(rename="new_field"), bad=list(exclude=TRUE),
+#'   text_col=list(type="keyword"))}.
+#' @param name Display name for the destination index (defaults to
+#'   \code{destination}); only used when creating a new index
+#' @param description Optional description; only used when creating a new index
+#' @param guest_role Optional guest role; only used when creating a new index
+#' @param queries Optional list of query strings to filter documents during reindex
+#' @param filters Optional list of filters to apply during reindex
+#' @param credentials The credentials to use. If not given, uses last login information
+#' @export
+reindex <- function(index, destination, fields = NULL,
+                    name = destination, description = NULL,
+                    guest_role = NULL, queries = NULL, filters = NULL,
+                    credentials = NULL) {
+  source_fields <- get_fields(index, credentials = credentials)
+  dest_types <- setNames(as.list(source_fields$type), source_fields$name)
+  for (fname in names(fields)) {
+    opts <- fields[[fname]]
+    new_name <- if (!is.null(opts$rename)) opts$rename else fname
+    new_type <- if (!is.null(opts$type)) opts$type else dest_types[[fname]]
+    dest_types[[fname]] <- NULL
+    if (!isTRUE(opts$exclude)) dest_types[[new_name]] <- new_type
+  }
+  if (!index_exists(destination, credentials = credentials)) {
+    create_index(destination, name = name, description = description,
+                 guest_role = guest_role, credentials = credentials)
+  }
+  set_fields(destination, dest_types, credentials = credentials)
+  invisible(post_reindex(index, destination, field_options = fields,
+                         queries = queries, filters = filters,
+                         credentials = credentials))
+}
+
+
 #' Set fields
 #'
 #' @param index The index to set fields for
