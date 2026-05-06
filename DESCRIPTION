@@ -1,8 +1,7 @@
 Package: amcat4r
 Type: Package
-Title: Controlling amcat4 from R
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Title: R client bindings for the amcat4 API
+Description: Functions to work with AmCAT4 from R - create projects, run queries, etc.
 Version: 4.2.10
 Authors@R:
     c(person(given = "Wouter",
