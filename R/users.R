@@ -58,7 +58,7 @@ create_user <- function(email,
     email = email, role = role,
     index_access = index_access
   )
-  invisible(request(credentials, "users/", "POST", body))
+  invisible(request(credentials, "users", "POST", body))
 }
 
 #' Delete new user

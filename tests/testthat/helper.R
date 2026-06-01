@@ -1,4 +1,4 @@
-amcat_test_server <- Sys.getenv("AMCAT4R_TEST_SERVER", unset="http://localhost/amcat")
+amcat_test_server <- Sys.getenv("AMCAT4R_TEST_SERVER", unset="http://localhost/api")
 amcat_offline = !ping(amcat_test_server)
 amcat_test_index = "amcat4r_testthat_testindex"
 amcat_test_apikey =  Sys.getenv("AMCAT4R_TEST_APIKEY")

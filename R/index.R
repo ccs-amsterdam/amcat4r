@@ -35,14 +35,14 @@ index_exists <- function(index, credentials = NULL) {
 #' @param credentials The credentials to use. If not given, uses last login
 #'   information.
 #'
-#' @return a tibble with index names and guest_role
+#' @return a tibble with index information including id, name, user_role, archived, description, folder, image_url
 #'
 #' @examples \dontrun{
 #' list_indexes()
 #' }
 #' @export
 list_indexes <- function(credentials = NULL) {
-  request(credentials, "index/") |> dplyr::bind_rows()
+  request(credentials, "index") |> dplyr::bind_rows()
 }
 
 
