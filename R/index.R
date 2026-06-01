@@ -71,8 +71,8 @@ delete_index <- function(index, credentials = NULL) {
 #'   characters are allowed here)
 #' @param description optional description of the index to create
 #' @param create_fields create fields in the new index.
-#' @param guest_role Role for unauthorized users. Options are "admin", "writer",
-#'   "reader" and "metareader".
+#' @param guest_role Role for unauthorized users. Options are "none", "observer",
+#'   "metareader", "reader", and "writer".
 #' @param credentials The credentials to use. If not given, uses last login
 #'   information.
 #'
@@ -424,6 +424,40 @@ set_fields <- function(index, fields, credentials = NULL) {
     c("index", index, "fields"),
     "POST",
     body = as.list(fields)
+  ))
+}
+
+
+#' Set field-level access for metareaders
+#'
+#' Controls which fields metareaders (unauthenticated/guest users) can access,
+#' and how much of those fields they can see.
+#'
+#' @param index The index to modify fields for.
+#' @param fields A named list of field access settings. Each element is named
+#'   after a field and contains a list with:
+#'   - `access`: `"none"` (hidden), `"read"` (full), or `"snippet"` (truncated).
+#'   - `max_snippet`: (optional, only used when `access = "snippet"`) a list
+#'     with `nomatch_chars` (chars to show without a query match, default 100),
+#'     `max_matches` (max highlighted matches, default 0), `match_chars`
+#'     (chars per match, default 50).
+#' @param credentials The credentials to use. If not given, uses last login information.
+#'
+#' @examples \dontrun{
+#' # Make 'url' fully readable and 'text' snippet-only for metareaders:
+#' set_metareader_access("de-news", list(
+#'   url  = list(access = "read"),
+#'   text = list(access = "snippet", max_snippet = list(nomatch_chars = 150))
+#' ))
+#' }
+#' @export
+set_metareader_access <- function(index, fields, credentials = NULL) {
+  body <- lapply(fields, function(f) list(metareader = f))
+  invisible(request(
+    credentials,
+    c("index", index, "fields"),
+    "PUT",
+    body = body
   ))
 }
 

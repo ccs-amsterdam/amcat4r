@@ -33,8 +33,8 @@ characters are allowed here)}
 
 \item{create_fields}{create fields in the new index.}
 
-\item{guest_role}{Role for unauthorized users. Options are "admin", "writer",
-"reader" and "metareader".}
+\item{guest_role}{Role for unauthorized users. Options are "none", "observer",
+"metareader", "reader", and "writer".}
 
 \item{credentials}{The credentials to use. If not given, uses last login
 information.}

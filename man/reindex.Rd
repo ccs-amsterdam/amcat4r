@@ -25,7 +25,7 @@ reindex(
 named list with any of: \code{rename} (new field name), \code{exclude}
 (logical, drop field), \code{type} (new AmCAT field type string).
 E.g. \code{list(old_field=list(rename="new_field"), bad=list(exclude=TRUE),
-  text_col=list(type="keyword"))}.}
+text_col=list(type="keyword"))}.}
 
 \item{name}{Display name for the destination index (defaults to
 \code{destination}); only used when creating a new index}
