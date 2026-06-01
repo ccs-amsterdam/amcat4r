@@ -169,12 +169,8 @@ upload_documents <- function(index,
                              credentials = NULL) {
   if (".id" %in% colnames(documents))
     colnames(documents) <- gsub(".id", "_id", colnames(documents), fixed = TRUE)
-  # Elasticsearch strict_date_optional_time requires ISO 8601 (T separator + Z);
-  # jsonlite serializes POSIXct as "2026-01-01 12:00:00" which is rejected.
-  datetime_cols <- which(vapply(documents, function(x) inherits(x, "POSIXt"), logical(1)))
-  for (col in datetime_cols) {
-    documents[[col]] <- strftime(documents[[col]], "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
-  }
+  documents <- convert_datetime_cols(documents)
+
   # chunk uploads
   rows <- seq_len(nrow(documents))
   chunks <- split(rows, ceiling(seq_along(rows) / chunk_size))
@@ -247,6 +243,7 @@ update_documents <- function(index,
   if (is.null(ids))
     stop("id is required either in the id or documents argument")
   documents <- documents[, colnames(documents) != ".id", drop = FALSE]
+  documents <- convert_datetime_cols(documents)
   for (i in seq_along(ids)) {
     request(credentials,
             c("index", index, "documents", ids[i]),

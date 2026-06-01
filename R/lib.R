@@ -156,6 +156,19 @@ convert_datecols <- function(df, index) {
 }
 
 
+#' Helper function to convert date columns in date format
+#' @noRd
+convert_datetime_cols <- function(documents) {
+  # Elasticsearch strict_date_optional_time requires ISO 8601 (T separator + Z);
+  # jsonlite serializes POSIXct as "2026-01-01 12:00:00" which is rejected.
+  datetime_cols <- which(vapply(documents, function(x) inherits(x, "POSIXt"), logical(1)))
+  for (col in datetime_cols) {
+    documents[[col]] <- strftime(documents[[col]], "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+  }
+  documents
+}
+
+
 #' Truncate id columns when printing
 #'
 #' @param x id column in a data.frame with amcat4 data.
