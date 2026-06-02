@@ -183,7 +183,10 @@ upload_documents <- function(index,
   for (r in chunks) {
     if (verbose & length(chunks) > 1L)
       cli::cli_progress_update()
-    body <- list(documents = documents[r, ])
+    docs_list <- lapply(r, function(i) {
+      Filter(Negate(is_na_scalar), as.list(documents[i, , drop = FALSE]))
+    })
+    body <- list(documents = docs_list)
     if (!is.null(columns))
       body$columns <- lapply(columns, jsonlite::unbox)
     res <- request(
@@ -245,10 +248,11 @@ update_documents <- function(index,
   documents <- documents[, colnames(documents) != ".id", drop = FALSE]
   documents <- convert_datetime_cols(documents)
   for (i in seq_along(ids)) {
+    body <- Filter(Negate(is_na_scalar), as.list(documents[i, , drop = FALSE]))
     request(credentials,
             c("index", index, "documents", ids[i]),
             "PUT",
-            body = as.list(documents[i, , drop = FALSE])) |>
+            body = body) |>
       invisible()
   }
 }

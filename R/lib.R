@@ -1,5 +1,7 @@
 pkg.env <- new.env()
 
+is_na_scalar <- function(x) is.atomic(x) && length(x) == 1L && is.na(x)
+
 #' Helper function to get credentials from argument or pkg.env
 #' TODO: rename to get_token
 #' @noRd
