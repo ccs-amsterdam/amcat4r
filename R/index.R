@@ -194,8 +194,7 @@ upload_documents <- function(index,
       c("index", index, "documents"),
       "POST",
       body,
-      max_tries = max_tries,
-      auto_unbox = FALSE
+      max_tries = max_tries
     )
     successes <- successes + res$successes
     failures = c(failures, res$failures)
